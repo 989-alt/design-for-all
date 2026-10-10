@@ -1,0 +1,26 @@
+/* 킷 9-slice — 정본: 시안/design-for-all/2-플랫-하단트레이.html 의 .k-* 규칙 (경로만 /assets/kit/) */
+.k-hud{border:36px solid transparent;border-image:url(/assets/kit/hud-bar.png) 88 fill / 36px stretch;height:72px}
+.k-panel{border-style:solid;border-color:transparent;border-width:25px 30px 35px 25px;border-image:url(/assets/kit/panel.png) 50 60 70 50 fill / 25px 30px 35px 25px stretch}
+.k-speech{border-style:solid;border-color:transparent;border-width:40px 20px 20px 65px;border-image:url(/assets/kit/speech.png) 80 40 40 130 fill / 40px 20px 20px 65px stretch}
+.k-card{border-style:solid;border-color:transparent;border-width:19px 8px 8px 19px;border-image:url(/assets/kit/card-trouble.png) 100 40 40 100 fill / 19px 8px 8px 19px stretch}
+.k-chip{border:16px solid transparent;border-image:url(/assets/kit/chip.png) 80 fill / 16px stretch;height:32px}
+.k-step{border:20px solid transparent;border-image:url(/assets/kit/step.png) 80 fill / 20px stretch;height:40px}
+.k-step-now{border-style:solid;border-color:transparent;border-width:13px 20px 18px 18px;border-image:url(/assets/kit/step-now.png) 50 85 70 80 fill / 13px 20px 18px 18px stretch;height:44px;color:var(--accent-foreground)}
+.k-btn{border-style:solid;border-color:transparent;border-width:20px 25px 28px 20px;border-image:url(/assets/kit/btn-teal.png) 40 50 56 40 fill / 20px 25px 28px 20px stretch;height:64px;color:var(--primary-foreground)}
+.k-btn.coral{border-image-source:url(/assets/kit/btn-coral.png);color:var(--accent-foreground)}
+.k-btn.paper{border-image-source:url(/assets/kit/btn-paper.png);color:var(--secondary-foreground);height:56px}
+.k-btn.pressed{border-image-source:url(/assets/kit/btn-teal-pressed.png);border-width:18px 22px 22px 18px;transform:translateY(4px)}
+.k-tool{border-style:solid;border-color:transparent;border-width:14px 16px 19px 14px;border-image:url(/assets/kit/tool.png) 50 60 70 50 fill / 14px 16px 19px 14px stretch;width:64px;height:48px}
+.k-tool.on{border-image-source:url(/assets/kit/tool-on.png);color:var(--primary-foreground)}
+.k-panel.thin{border-width:14px 16px 20px 14px;border-image-width:14px 16px 20px 14px}
+.k-card.thin{border-width:12px 6px 8px 12px;border-image-width:12px 6px 8px 12px}
+.k-step,.k-step-now,.k-chip,.k-btn,.k-tool,.k-card{display:inline-block;vertical-align:middle}
+.k-track{border:7px solid transparent;border-image:url(/assets/kit/gauge-track.png) 48 fill / 7px stretch;height:14px}
+.k-fill{border:7px solid transparent;border-image:url(/assets/kit/gauge-fill.png) 48 fill / 7px stretch;height:14px}
+/* 글자는 면 중심 절대 배치 */
+.lbl{position:relative;display:block}
+.lbl>span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;line-height:1}
+.k-btn .lbl>span{top:calc(50% - 2px)}
+.k-step-now .lbl>span{top:calc(50% + 1px)}
+button{all:unset;box-sizing:border-box;cursor:pointer;display:block}
+button:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:var(--shadow-focus);border-radius:var(--radius-md)}

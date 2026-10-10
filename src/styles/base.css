@@ -1,0 +1,38 @@
+@font-face{font-family:'Jua';font-weight:400;font-display:swap;src:url(/fonts/jua.woff2) format('woff2')}
+@font-face{font-family:'Noto Sans KR';font-weight:500;font-display:swap;src:url(/fonts/noto-sans-kr-500.woff2) format('woff2')}
+@font-face{font-family:'Noto Sans KR';font-weight:700;font-display:swap;src:url(/fonts/noto-sans-kr-700.woff2) format('woff2')}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--surface-studio);color:var(--foreground);font-family:var(--font-body);font-weight:500;font-size:var(--text-base);line-height:var(--leading-normal)}
+.jua{font-family:var(--font-display);font-weight:400}
+
+/* 글자 크기: html[data-text=large] 에서 --text-* 를 1.25 배 */
+html[data-text=large]{
+  --text-sm:calc(16px * var(--text-scale-large));--text-base:calc(20px * var(--text-scale-large));
+  --text-lg:calc(24px * var(--text-scale-large));--text-xl:calc(30px * var(--text-scale-large));
+  --text-2xl:calc(40px * var(--text-scale-large));--text-3xl:calc(56px * var(--text-scale-large));
+}
+/* 고대비는 tokens.css 의 html[data-contrast=high] 블록이 값을 바꾼다 */
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-base:0ms;--motion-reaction:0ms}
+  *{transition-duration:0ms !important;animation-duration:0ms !important}
+}
+
+/* 무대: 1280×800 을 뷰포트에 맞춰 축소하는 레터박스. --stage-scale 은 app.tsx 가 정한다 */
+:root{--stage-scale:1;--tap-min:max(var(--size-tap-min),calc(44px / var(--stage-scale)))}
+.stage{position:absolute;left:50%;top:50%;width:var(--size-stage-w);height:var(--size-stage-h);overflow:hidden;transform:translate(-50%,-50%) scale(var(--stage-scale));background:var(--surface-classroom)}
+.stage.studio{background:var(--surface-studio)}
+button{min-width:var(--tap-min);min-height:var(--tap-min)}
+
+.hud{position:absolute;left:16px;top:16px;width:1248px}
+.hud-in{height:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;transform:translateY(-18px)}
+.title{margin:0;font-size:var(--text-lg);font-weight:400;white-space:nowrap}
+.hud .k-btn{width:140px}
+
+/* 세로 모드 안내 */
+.rotate-hint{display:none}
+@media (orientation:portrait){
+  .stage{display:none}
+  .rotate-hint{display:grid;place-items:center;height:100%;font-family:var(--font-display);font-size:var(--text-xl);text-align:center;background:var(--background)}
+}
