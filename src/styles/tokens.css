@@ -84,6 +84,7 @@
 }
 /* 고대비: themes.high-contrast 로 덮어쓴다 */
 html[data-contrast=high]{
+  --accent-text:#8A1C00;
   --background:#FFFFFF;
   --foreground:#000000;
   --card:#FFFFFF;
