@@ -5,6 +5,12 @@ import { FEEDBACK } from '../content/feedback';
 export function Feedback({ id, onClose }: { id: 'bus' | 'tech'; onClose: () => void }) {
   const fb = FEEDBACK.find((f) => f.id === `fb-${id}`)!;
   const ref = useRef<HTMLButtonElement>(null);
+  // 포커스를 옮기기 전(위 효과보다 먼저 선언)의 자리를 기억해 둔다. 닫으면 열기 전 자리로, 그 요소가 사라졌으면 뒤 화면의 첫 반응 카드로 돌아간다
+  useEffect(() => {
+    const prev = document.activeElement;
+    // 다음 틱에: 닫는 순간엔 뒤 화면이 아직 inert 라 포커스가 안 먹는다
+    return () => void setTimeout(() => ((prev?.isConnected && prev !== document.body ? prev : document.querySelector('.test-in .tp:not(.wait), .test-in button')) as HTMLElement | null)?.focus());
+  }, []);
   useEffect(() => ref.current?.focus(), [id]);
   const key = (e: KeyboardEvent) => {
     if (e.key === 'Tab') (e.preventDefault(), ref.current?.focus());

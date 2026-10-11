@@ -26,4 +26,6 @@
 .k-btn .lbl>span{top:calc(50% - 2px)}
 .k-step-now .lbl>span{top:calc(50% + 1px);font-size:17px}
 button{all:unset;box-sizing:border-box;cursor:pointer;display:block}
-button:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:var(--shadow-focus);border-radius:var(--radius-md)}
+/* 키보드로 닿는 것 전부(스크롤 상자 포함)에 같은 링 */
+html :focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+button:focus-visible,[tabindex]:focus-visible{border-radius:var(--radius-md)}
