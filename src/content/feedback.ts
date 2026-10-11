@@ -1,6 +1,9 @@
 import type { Feedback } from './types';
 
 // PRD §6 오개념 피드백: M1 저상 버스, M3 첨단 연결
+// PRD §6 M2: 색·형태만 바꾸고 만족 수 변동 0 일 때 NPC 가 말함
+export const COSMETIC_LINE = '색은 예쁜데 아직 무거워요.';
+
 export const FEEDBACK: Feedback[] = [
   {
     id: 'fb-bus', title: '계단을 없앤 낮은 버스', assetId: 'fb-bus',

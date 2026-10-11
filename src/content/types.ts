@@ -79,7 +79,7 @@ export interface Sample {
   id: string;
   title: string;
   desc: string;
-  praise: Record<ElementId, string>; // 칭찬 문장 조립용
+  praise: Record<ElementId, string>; // 까닭 조각 — 「주어 · 요소 이름 · 까닭」 조립용
   assetId: string;
 }
 
@@ -90,7 +90,7 @@ export interface Feedback {
   assetId: string;
 }
 
-export interface Element {
+export interface DesignElement {
   id: ElementId;
   name: string;
   desc: string;

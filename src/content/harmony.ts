@@ -1,6 +1,6 @@
 import type { Harmony, HarmonyKey, PartNo, ProductId } from './types';
 
-// 조화표(아름다움): 형태·색·소재 64조합. 아래 규칙에 먼저 걸리는 값, 없으면 50.
+// 조화표(아름다움): 형태·색·소재 64조합. 아래 규칙 중 먼저 맞는 규칙이 이긴다, 없으면 50.
 type Rule = { form?: PartNo; color?: PartNo; material?: PartNo; score: 0 | 100 };
 
 const RULES: Record<ProductId, Rule[]> = {
@@ -11,10 +11,11 @@ const RULES: Record<ProductId, Rule[]> = {
     { color: 4, material: 3, score: 0 }, // 나무색+알루미늄: 재료와 색이 어긋난다
   ],
   locker: [
-    { color: 3, material: 1, score: 100 }, // 고대비 띠+철: 단단한 느낌이 한 결
-    { form: 3, color: 2, score: 100 }, // 회전 원형+칸마다 다른 색: 돌 때 색이 리듬을 만든다
+    // 0 규칙이 먼저: 회전 원형+칸마다 다른 색이어도 철·나무결이면 0
     { color: 2, material: 1, score: 0 }, // 알록달록+철: 차가운 재료에 들뜬 색
     { color: 2, material: 3, score: 0 }, // 칸마다 다른 색+나무결: 무늬끼리 다툰다
+    { color: 3, material: 1, score: 100 }, // 고대비 띠+철: 단단한 느낌이 한 결
+    { form: 3, color: 2, score: 100 }, // 회전 원형+칸마다 다른 색: 돌 때 색이 리듬을 만든다
   ],
   door: [
     { color: 4, material: 3, score: 100 }, // 나무색+재생 나무: 재료와 색이 한 결

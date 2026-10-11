@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CARDS, WORSE_LINE } from './cards';
 import { CASES } from './cases';
 import { ELEMENTS } from './elements';
-import { FEEDBACK } from './feedback';
+import { COSMETIC_LINE, FEEDBACK } from './feedback';
 import { HARMONY } from './harmony';
 import { NPCS } from './npcs';
 import { MATERIAL_NOTE, PRODUCTS } from './products';
@@ -59,6 +59,31 @@ describe('효과표', () => {
         best = Math.max(best, happy.length);
       }
       expect(best, prod).toBe(want[prod]);
+    }
+  });
+
+  it('무작위 기대 만족 — 2,000판 평균이 NPC 수의 절반 이하 (PRD §4.7)', () => {
+    // mulberry32: 시드 고정 난수
+    let seed = 20261011;
+    const rand = () => {
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    for (const prod of PRODUCT_IDS) {
+      const cards = CARDS.filter((c) => c.product === prod);
+      const npcs = [...new Set(cards.map((c) => c.npc))];
+      let sum = 0;
+      for (let g = 0; g < 2000; g++) {
+        const chosen: Part[] = SLOTS.map((s) => PRODUCTS[prod].parts[s][Math.floor(rand() * 4)]);
+        const full = new Set(chosen.flatMap((p) => p.solves));
+        const worse = new Set(chosen.flatMap((p) => p.worse));
+        sum += npcs.filter((n) => cards.filter((c) => c.npc === n).every((c) => full.has(c.id) && !worse.has(c.id))).length;
+      }
+      const avg = sum / 2000;
+      console.log(`기대 만족 ${prod}: ${avg.toFixed(3)} / ${npcs.length}`);
+      expect(avg, prod).toBeLessThanOrEqual(npcs.length / 2);
     }
   });
 
@@ -124,6 +149,16 @@ describe('카드', () => {
     expect(FEEDBACK.map((f) => f.id)).toEqual(['fb-bus', 'fb-tech']);
     expect(ELEMENTS.map((e) => e.id)).toEqual(['purpose', 'tech', 'function', 'beauty', 'access', 'eco']);
   });
+
+  it('샘플 칭찬 — 요소 6줄, 까닭 조각(~서/~니까, 30자 이하)', () => {
+    for (const s of SAMPLES) {
+      expect(Object.keys(s.praise)).toEqual(ELEMENTS.map((e) => e.id));
+      for (const l of Object.values(s.praise)) {
+        expect(l, l).toMatch(/(서|니까)$/); // 아서·어서·해서·와서
+        expect(l.length, l).toBeLessThanOrEqual(30);
+      }
+    }
+  });
 });
 
 describe('문장', () => {
@@ -131,6 +166,7 @@ describe('문장', () => {
     ...CARDS.flatMap((c) => [c.where, c.what, ...Object.values(c.reactions)]),
     WORSE_LINE,
     MATERIAL_NOTE,
+    COSMETIC_LINE,
     ...CASES.flatMap((c) => [c.title, ...c.back.split('. ')]),
     ...REFERENCES.flatMap((r) => [r.title, r.desc]),
     ...SAMPLES.flatMap((s) => [s.title, s.desc, ...Object.values(s.praise)]),

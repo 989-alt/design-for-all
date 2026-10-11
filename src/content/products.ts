@@ -106,14 +106,14 @@ export const PRODUCTS: Record<ProductId, Product> = {
     parts: {
       form: [
         part('door', 'form', 1, '무거운 여닫이', 'door-form-1'),
-        part('door', 'form', 2, '가벼운 경첩 여닫이', 'door-form-2', { solves: ['C03', 'C12'] }),
+        part('door', 'form', 2, '가벼운 경첩 여닫이', 'door-form-2', { partial: ['C03', 'C12'] }),
         part('door', 'form', 3, '미닫이', 'door-form-3', { solves: ['C03', 'C12'], partial: ['C07', 'C15'] }),
         part('door', 'form', 4, '자동문 센서', 'door-form-4', { solves: ['C03', 'C12', 'C07', 'C15'], tech: true }),
       ],
       funcA: [
         part('door', 'funcA', 1, '둥근 손잡이', 'door-handle-1'),
         part('door', 'funcA', 2, '레버 손잡이', 'door-handle-2', { solves: ['C07', 'C15'] }),
-        part('door', 'funcA', 3, '세로 긴 막대 손잡이', 'door-handle-3', { solves: ['C07', 'C15'], partial: ['C03', 'C12'] }),
+        part('door', 'funcA', 3, '세로 긴 막대 손잡이', 'door-handle-3', { partial: ['C07', 'C15', 'C03', 'C12'] }),
         part('door', 'funcA', 4, '열림 버튼', 'door-handle-4', { solves: ['C07', 'C15'], tech: true }),
       ],
       funcB: [
