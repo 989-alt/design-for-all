@@ -25,10 +25,9 @@ export function Classroom() {
           <button class="npc-hit" style={{ left: h.x, top: h.y, width: h.w, height: h.h }} aria-label={`${n.name} · ${n.trait}`} aria-pressed={who === h.id} onClick={() => talk(h.id)} />
         );
       })}
-      <div class="k-panel thin counter" aria-live="polite">
-        <span>불편 카드 <span class="num">{state.collected.length}</span> 장 · 사용자 <span class="num">{users}</span> 명</span>
-      </div>
-      <Next cls="room" />
+      <Next cls="counter">
+        <span class="count" aria-live="polite">불편 카드 <span class="num">{state.collected.length}</span> 장 · 사용자 <span class="num">{users}</span> 명</span>
+      </Next>
       {who && <Dialog npcId={who} />}
     </div>
   );

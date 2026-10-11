@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import { reduce } from '../engine/state';
 import type { Reject, Stage } from '../engine/types';
-import { applyPref } from '../app';
+import type { ComponentChildren } from 'preact';
+import { applyPref, readPref } from './pref';
 import { advance, useGame } from './store';
 
 const STEPS = ['문제점 찾기', '조사하기', '설계하기', '테스트·수정', '돌아보기'];
@@ -20,10 +21,11 @@ export function Hud() {
   const { state } = useGame();
   const [, re] = useState(0);
   const now = STEP_OF[state.stage] ?? -1;
-  const pref = document.documentElement.dataset;
+  const pref = readPref();
   const tools = [
     { label: '가 크게', on: !!pref.text, flip: () => applyPref({ text: pref.text ? undefined : 'large' }) },
     { label: '고대비', on: !!pref.contrast, flip: () => applyPref({ contrast: pref.contrast ? undefined : 'high' }) },
+    { label: '소리', on: pref.sound !== 'off', flip: () => applyPref({ sound: pref.sound ? undefined : 'off' }) },
   ];
   return (
     <header class="hud k-hud" aria-label="진행">
@@ -32,11 +34,11 @@ export function Hud() {
         <nav class="steps" aria-label="디자인 과정">
           {STEPS.map((name, i) =>
             i === now ? (
-              <span class="k-step-now jua" style="width:136px" aria-current="step">
+              <span class="k-step-now jua" aria-current="step">
                 <span class="lbl"><span>{i + 1} {name}</span></span>
               </span>
             ) : (
-              <span class="k-step" style="width:126px">
+              <span class="k-step">
                 <span class="lbl sm">
                   <span>
                     {i < now ? <img class="icon" src="./assets/kit/icon-check.png" width={18} height={18} alt="완료" /> : `${i + 1} `}
@@ -60,12 +62,13 @@ export function Hud() {
 }
 
 // 다음 단계 버튼. 막힘 여부는 엔진에 미리 물어본다(규칙을 UI 에 다시 쓰지 않는다)
-export function Next({ cls = '' }: { cls?: string }) {
+export function Next({ cls = '', children }: { cls?: string; children?: ComponentChildren }) {
   const { state, rejected } = useGame();
   const block = reduce(state, { type: 'nextStage' }).rejected;
   const msg = (rejected && MSG[rejected]) || (block && MSG[block]) || '';
   return (
     <footer class={`k-panel thin next-bar ${cls}`}>
+      {children}
       <p class="msg" aria-live="polite">{msg}</p>
       <button class="k-btn coral" aria-disabled={block ? 'true' : undefined} onClick={() => advance(state.stage)}>
         <span class="lbl jua"><span>다음</span></span>

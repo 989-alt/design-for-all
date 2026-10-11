@@ -31,7 +31,7 @@ export function Cases() {
           <h2 id="case-h" class="jua">{c.title}</h2>
           <div class="els" role="group" aria-label="이 디자인이 가장 힘을 준 요소">
             {ELEMENTS.map((e) => (
-              <button class="k-btn paper el" aria-disabled={tag?.correct ? 'true' : undefined} onClick={() => dispatch({ type: 'tagCase', caseId: c.id, elementId: e.id })}>
+              <button class="k-btn paper el" aria-disabled={tag?.correct ? 'true' : undefined} onClick={(ev) => ev.detail > 1 || dispatch({ type: 'tagCase', caseId: c.id, elementId: e.id })}>
                 <span class="lbl"><span><img class="icon" src={`./assets/kit/${e.icon}.png`} width={24} height={24} alt="" /> {e.name}</span></span>
               </button>
             ))}

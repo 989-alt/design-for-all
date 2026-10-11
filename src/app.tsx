@@ -4,6 +4,7 @@ import type { Stage } from './engine/types';
 import { Cases } from './ui/Cases';
 import { Classroom } from './ui/Classroom';
 import { Pick } from './ui/Pick';
+import { applyPref } from './ui/pref';
 import { Hud } from './ui/Progress';
 import { Research } from './ui/Research';
 import { getState, useGame } from './ui/store';
@@ -15,32 +16,6 @@ import './styles/ui.css';
 const SCREENS: Partial<Record<Stage, FunctionComponent>> = { title: Title, cases: Cases, classroom: Classroom, pick: Pick, research: Research, design: Studio, test: Test, revise: Studio };
 // 돌아보기 이후 화면은 T06~ 에서 채운다
 const Later = () => <div class="stage studio"><Hud /></div>;
-
-const KEY = 'dfa.pref';
-type Pref = { text?: 'large'; contrast?: 'high' };
-
-function readPref(): Pref {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '{}');
-  } catch {
-    return {};
-  }
-}
-
-// 글자 크게·고대비 토글(Progress 의 HUD 도구 버튼). html 속성과 localStorage 를 맞춘다
-export function applyPref(next: Pref) {
-  const pref = { ...readPref(), ...next };
-  const root = document.documentElement;
-  for (const [k, v] of [['text', pref.text], ['contrast', pref.contrast]] as const) {
-    if (v) root.dataset[k] = v;
-    else delete root.dataset[k];
-  }
-  try {
-    localStorage.setItem(KEY, JSON.stringify(pref));
-  } catch {
-    /* 저장 불가여도 화면은 동작한다 */
-  }
-}
 
 function fitStage() {
   const s = Math.min(innerWidth / 1280, innerHeight / 800);

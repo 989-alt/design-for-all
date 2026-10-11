@@ -1,7 +1,5 @@
 import type { NpcId } from '../content/types';
 
-// 원본 그림. public/assets 는 gitignore 라 scripts/copy-assets.mjs 에 이 복사 줄이 들어가야 한다(T08)
-export const CLASSROOM_ART_SRC = '시안/design-for-all/1-플랫-교실.png';
 export const CLASSROOM_ART = './assets/scene/classroom-npcs.png';
 
 // 1280×800 무대 좌표, 그림 object-fit:cover · object-position:50% 20% 기준. 배열 순서(왼→오) = Tab 순서

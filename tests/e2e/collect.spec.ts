@@ -19,6 +19,14 @@ test('토글: html data 속성 즉시 반영 · dfa.pref 저장 · 새로고침 
   await page.getByRole('button', { name: '가 크게' }).click();
   await expect(page.locator('html')).not.toHaveAttribute('data-text', 'large');
   expect(JSON.parse((await page.evaluate(() => localStorage.getItem('dfa.pref')))!)).toEqual({ contrast: 'high' });
+  // 소리: 기본 켬, 끄면 저장
+  const sound = page.getByRole('button', { name: '소리' });
+  await expect(sound).toHaveAttribute('aria-pressed', 'true');
+  await sound.click();
+  await expect(sound).toHaveAttribute('aria-pressed', 'false');
+  expect(JSON.parse((await page.evaluate(() => localStorage.getItem('dfa.pref')))!)).toEqual({ contrast: 'high', sound: 'off' });
+  await page.reload();
+  await expect(page.getByRole('button', { name: '소리' })).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('자동 조작: ?e2e=1 에만 window.__dfa', async ({ page }) => {
@@ -72,6 +80,7 @@ test('본 흐름: 연타·사례 오답 재시도·교실 수집·제품·조사
   // 나머지 6장은 버튼으로
   for (let i = 1; i < CASES.length; i++) {
     await page.getByRole('button', { name: new RegExp(`^${i + 1}번`) }).click();
+    await expect(page.locator('.back')).toHaveCount(0); // 둘째 사례부터도 태깅 전 뒷면 없음
     await page.getByRole('button', { name: ELEMENTS.find((e) => e.id === CASES[i].main)!.name }).click();
   }
   expect((await getState(page)).tags.every((t) => t.correct)).toBe(true);
@@ -95,7 +104,9 @@ test('본 흐름: 연타·사례 오답 재시도·교실 수집·제품·조사
   const take = page.getByRole('button', { name: '불편 카드 받기' });
   await page.getByRole('button', { name: '서윤 · 휠체어를 타요' }).click();
   await expect(page.locator('.speech')).toContainText('책상 밑에 휠체어가 안 들어가');
-  for (let i = 0; i < 3; i++) await take.click();
+  await take.dblclick(); // 연타: 카드 +1 만
+  expect((await getState(page)).collected).toEqual(['C01']);
+  for (let i = 0; i < 2; i++) await take.click();
   await expect(page.locator('.speech p')).toHaveText('고마워!');
   await expect(take).toHaveCount(0);
   await page.getByRole('button', { name: '도현 · 키가 커요' }).click();
@@ -129,17 +140,23 @@ test('본 흐름: 연타·사례 오답 재시도·교실 수집·제품·조사
   // 조사: 클릭 탭 2번 + 키보드 Enter 탭 2번
   await expect(page.locator('.ref')).toHaveCount(12);
   await expect(msg(page)).toHaveText('참고 카드 2장을 불편 카드에 이어야 해요');
+  // 연결 대상은 고른 제품(책상)의 불편 카드만
+  await expect(page.locator('.targets .tcard')).toHaveText([/책상 밑에 휠체어가 안 들어가/, /책상이 낮아 무릎이 부딪혀/, /책상을 옮기기 힘들어/]);
   await page.locator('[data-ref=ref-07]').click();
   await page.locator('.tcard', { hasText: '책상을 옮기기 힘들어' }).click();
   await page.locator('[data-ref=ref-12]').focus();
   await page.keyboard.press('Enter');
-  await page.locator('.tcard', { hasText: '문이 무거워 혼자 열기 힘들어' }).focus();
+  await page.locator('.tcard', { hasText: '책상이 낮아 무릎이 부딪혀' }).focus();
   await page.keyboard.press('Enter');
   expect((await getState(page)).research).toEqual([
     { refId: 'ref-07', cardId: 'C06' },
-    { refId: 'ref-12', cardId: 'C03' },
+    { refId: 'ref-12', cardId: 'C04' },
   ]);
   await expect(page.locator('[data-ref=ref-07]')).toContainText('→ 하준');
+  // 셋째 참고 카드: 거부 + 안내
+  await page.locator('[data-ref=ref-01]').click();
+  await expect(msg(page)).toHaveText('참고 카드는 2장까지 골라요');
+  expect((await getState(page)).research).toHaveLength(2);
   await expect(next(page)).not.toHaveAttribute('aria-disabled', 'true');
   await next(page).dblclick();
   expect((await getState(page)).stage).toBe('design');

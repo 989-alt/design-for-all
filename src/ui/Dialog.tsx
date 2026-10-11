@@ -9,7 +9,7 @@ export function Dialog({ npcId }: { npcId: NpcId }) {
   const n = NPCS.find((x) => x.id === npcId)!;
   const card = CARDS.find((c) => c.npc === npcId && !state.collected.includes(c.id));
   return (
-    <section class="k-speech speech" style="width:1100px;height:176px" aria-label="대화" aria-live="polite">
+    <section class="k-speech speech" style="width:1100px;min-height:176px" aria-label="대화" aria-live="polite">
       <div class="who">
         <img class="npc" src={`./assets/kit/${n.portrait.happy}.png`} width={64} height={64} alt="" />
         <b class="jua">{n.name}</b>
@@ -21,7 +21,7 @@ export function Dialog({ npcId }: { npcId: NpcId }) {
         <p class="jua">고마워!</p>
       )}
       {card && (
-        <button class="k-btn coral" style="width:220px" onClick={() => dispatch({ type: 'takeCard', cardId: card.id })}>
+        <button class="k-btn coral" style="width:220px" onClick={(e) => e.detail > 1 || dispatch({ type: 'takeCard', cardId: card.id })}>
           <span class="lbl jua"><span>불편 카드 받기</span></span>
         </button>
       )}

@@ -29,7 +29,7 @@ export function Research() {
           const pk = picked(id);
           const to = pk?.cardId && CARDS.find((c) => c.id === pk.cardId)!;
           return (
-            <button class={`k-panel thin ref${active === id ? ' ring' : ''}`} aria-pressed={!!pk} data-ref={id} onClick={() => tapRef(id)}>
+            <button class={`k-panel thin ref${active === id ? ' ring' : ''}`} aria-pressed={!!pk} data-ref={id} onClick={(e) => e.detail > 1 || tapRef(id)}>
               <img src={`./assets/kit/${r.assetId}.png`} alt="" />
               <span class="jua rt">{r.title}</span>
               <span class="sm">
@@ -42,7 +42,7 @@ export function Research() {
       <section class="k-panel targets" aria-label="내 불편 카드">
         <p class="desc" aria-live="polite">{act ? <><b class="jua">{act.title}</b> {act.desc}</> : <b class="jua">내 불편 카드</b>}</p>
         <div class="tlist">
-          {CARDS.filter((c) => state.collected.includes(c.id)).map((c) => (
+          {CARDS.filter((c) => c.product === state.product && state.collected.includes(c.id)).map((c) => (
             <Card card={c} onClick={() => tapCard(c.id)} pressed={state.research.some((r) => r.cardId === c.id)} />
           ))}
         </div>
