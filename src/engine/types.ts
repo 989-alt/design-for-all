@@ -9,6 +9,7 @@ export interface Round {
   reactions: Partial<Record<NpcId, ReactionKind>>; // 그 제품 카드가 있는 NPC 만
   lines: Partial<Record<NpcId, string>>; // 반응 대표 한 줄
   satisfied: number;
+  worse: Partial<Record<NpcId, PartId>>; // ✗ 로 불만인 NPC → 지목 부품(§4.3)
   reason?: NpcId; // rounds[1..] 수정 이유
 }
 

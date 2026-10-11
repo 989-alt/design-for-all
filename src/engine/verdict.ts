@@ -25,10 +25,12 @@ export function verdict(s: GameState): Verdict {
   const S2 = !!last && SLOTS.filter((sl) => linkOk(partOf(last.slots[sl]), last.links[sl])).length >= 4;
   const S3 = s.rounds.length >= 2 && s.rounds.slice(1).every((r) => !!r.reason);
   const first = (id: string) => s.tags.find((t) => t.caseId === id)?.tried[0];
-  const S4 = CASES.filter((c) => first(c.id) === c.main).length >= 5 && first('case-07') === CASES.find((c) => c.id === 'case-07')!.main;
-  const name = (id: string) => ELEMENTS.find((e) => e.id === id)!.name;
+  // 저상 버스 사례 — content 에 버스 식별자가 없어 제목으로 찾는다
+  const bus = CASES.find((c) => c.title.includes('버스'));
+  const S4 = CASES.filter((c) => first(c.id) === c.main).length >= 5 && !!bus && first(bus.id) === bus.main;
+  // 요소 이름은 UI 가 element id 로 붙인다 — 문장 텍스트가 아니라 id 로 판정
   const S5 = s.reflect.good.length >= 1 && s.reflect.fix.length >= 1
-    && SAMPLES.every((sm) => s.reflect.praise.some((p) => p.sampleId === sm.id && p.line.includes(name(p.element))));
+    && SAMPLES.every((sm) => s.reflect.praise.some((p) => p.sampleId === sm.id && ELEMENTS.some((e) => e.id === p.element)));
   const cards = CARDS.filter((c) => s.collected.includes(c.id));
   const S6 = new Set(cards.map((c) => c.npc)).size >= 3 && cards.filter((c) => c.product === s.product).length >= 3;
   const S8 = s.log.filter((l) => l.e === 'stage').length <= 20 && s.log.filter((l) => l.e === 'talk').length <= 12;

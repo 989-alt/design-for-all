@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CARDS, WORSE_LINE } from '../content/cards';
-import type { PartId, ProductId, SlotId } from '../content/types';
+import type { CardId, PartId, ProductId, SlotId } from '../content/types';
 import { busTrigger, cosmeticOnly, npcsFor, react, SLOTS } from './judge';
 import type { Round } from './types';
 
@@ -47,12 +47,20 @@ describe('반응 판정 — full → happy, 일부·partial → partial, 없음�
   });
 });
 
-describe('M1 트리거 — 1차 반응 happy ≤1 ∧ happy 가 N1', () => {
-  it("서윤만 만족이면 'bus', 아니면 없음", () => {
-    expect(busTrigger({ seoyun: 'happy', dohyun: 'unhappy', jian: 'partial' })).toBe(true);
-    expect(busTrigger({ seoyun: 'happy', haeun: 'happy' })).toBe(false);
-    expect(busTrigger({ seoyun: 'partial', jian: 'happy' })).toBe(false);
-    expect(busTrigger({ seoyun: 'unhappy' })).toBe(false);
+describe('M1 트리거 — 1차 만족 ≤1 ∨ 연결 카드가 전부 한 NPC 것', () => {
+  const links = (cards: (CardId | null)[]) => Object.fromEntries(SLOTS.map((s, i) => [s, cards[i] ?? null])) as Round['links'];
+  const two = { seoyun: 'happy', haeun: 'happy', jian: 'partial' } as const;
+  const spread = links(['C01', 'C04', null, null, null]); // 서윤·도현
+  it('만족 ≤1 이면 연결이 여러 NPC 에 걸쳐도 bus', () => {
+    expect(busTrigger({ seoyun: 'happy', dohyun: 'unhappy', jian: 'partial' }, spread)).toBe(true);
+    expect(busTrigger({ seoyun: 'unhappy', jian: 'partial' }, spread)).toBe(true);
+  });
+  it('만족 2 여도 null 아닌 연결이 전부 서윤 카드면 bus', () => {
+    expect(busTrigger(two, links(['C01', null, 'C01', null, null]))).toBe(true);
+  });
+  it('부정례 — 만족 2 ∧ 연결이 두 NPC, 만족 2 ∧ 연결 0개', () => {
+    expect(busTrigger(two, spread)).toBe(false);
+    expect(busTrigger(two, links([]))).toBe(false);
   });
 });
 

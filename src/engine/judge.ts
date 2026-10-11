@@ -71,10 +71,11 @@ export function techMiss(round: Pick<Round, 'slots' | 'links'>): boolean {
   });
 }
 
-// M1: 1차 반응에서 만족 ≤1 이고 그 1명이 서윤(N1)
-export function busTrigger(reactions: Round['reactions']): boolean {
-  const happy = Object.keys(reactions).filter((n) => reactions[n as NpcId] === 'happy');
-  return happy.length === 1 && happy[0] === 'seoyun';
+// M1(PRD §6 수정본): 1차 만족 ≤1, 또는 연결한 카드(1장 이상)가 전부 한 NPC 의 것
+export function busTrigger(reactions: Round['reactions'], links: Round['links']): boolean {
+  const happy = Object.values(reactions).filter((k) => k === 'happy').length;
+  const owners = new Set(Object.values(links).filter((c) => c !== null).map((c) => CARDS.find((x) => x.id === c)?.npc));
+  return happy <= 1 || owners.size === 1;
 }
 
 // M2: 색·형태만 바꾸고 만족 수 그대로

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CASES } from '../content/cases';
+import { WORSE_LINE } from '../content/cards';
 import { COSMETIC_LINE } from '../content/feedback';
-import type { CardId, NpcId, PartId, SlotId } from '../content/types';
+import type { CardId, NpcId, PartId, ProductId, SlotId } from '../content/types';
 import { SLOTS } from './judge';
 import { initState, reduce } from './state';
 import type { Action, GameState } from './types';
@@ -89,6 +90,7 @@ describe('제품 선택 후 해당 제품 카드 0장', () => {
     expect(r.state.product).toBe('door');
     expect(r.effects!.map((e) => e.e)).toContain('no_cards_for_product');
     expect(reduce(s, { type: 'pickProduct', productId: 'desk' }).effects!.map((e) => e.e)).not.toContain('no_cards_for_product');
+    expect(reduce(s, { type: 'pickProduct', productId: 'toString' as ProductId }).rejected).toBe('unknown_id');
   });
 });
 
@@ -108,8 +110,9 @@ describe('슬롯 미완', () => {
     const s = play(toDesign(), ...parts([2, 3, 3, 3, 2]).slice(0, 4));
     expect(reduce(s, { type: 'runTest' }).rejected).toBe('slots_incomplete');
   });
-  it('남의 제품 부품 거부', () => {
+  it('남의 제품 부품 거부, 프로토타입 키 슬롯 거부(throw 없음)', () => {
     expect(reduce(toDesign(), { type: 'setPart', slotId: 'form', partId: 'door-form-1' }).rejected).toBe('bad_part');
+    expect(reduce(toDesign(), { type: 'setPart', slotId: 'constructor' as SlotId, partId: 'desk-form-1' }).rejected).toBe('bad_part');
   });
 });
 
@@ -132,6 +135,19 @@ describe('수정 강제·상한·이유', () => {
   });
   it("revise 에 reason 없으면 거부 'no_reason', 테스트에 없는 NPC 도 거부", () => {
     expect(reduce(tested(), { type: 'revise' }).rejected).toBe('no_reason');
+    expect(reduce(tested(), { type: 'revise', reason: 'nobody' as NpcId }).rejected).toBe('no_reason');
+    expect(reduce(tested(), { type: 'revise', reason: 'constructor' as NpcId }).rejected).toBe('no_reason');
+  });
+  it('만족 NPC 를 이유로 대면 거부, 부분·불만 NPC 는 허용 (A3 → 서윤·도현·하은 만족)', () => {
+    const s = play(toDesign(), ...parts([1, 3, 1, 1, 1]), { type: 'runTest' });
+    expect(s.rounds[0].reactions.seoyun).toBe('happy');
+    expect(reduce(s, { type: 'revise', reason: 'seoyun' }).rejected).toBe('no_reason');
+    expect(reduce(s, { type: 'revise', reason: 'jian' }).rejected).toBeUndefined();
+  });
+  it('직전 라운드 전원 만족이면 테스트에 나온 아무 NPC 허용', () => {
+    const s = play(toDesign(), ...parts([2, 3, 3, 3, 2]), { type: 'runTest' });
+    expect(s.rounds[0].satisfied).toBe(6);
+    expect(reduce(s, { type: 'revise', reason: 'grandma' }).rejected).toBeUndefined();
   });
   it("슬롯 변경 0 이면 retest 거부 'no_change' (연결만 바꿔도 거부)", () => {
     const s = play(tested(), { type: 'revise', reason: 'jian' }, { type: 'linkPart', slotId: 'form', cardId: 'C09' });
@@ -157,6 +173,17 @@ describe('M2 신호 — 색·형태만 바꾸고 satisfied 변동 0', () => {
     expect(r.effects!.map((e) => e.e)).toContain('cosmetic_only');
     expect(r.state.rounds[1].satisfied).toBe(r.state.rounds[0].satisfied);
     expect(r.state.rounds[1].lines.seoyun).toBe(COSMETIC_LINE);
+  });
+  it('✗ 부품 지목 줄은 COSMETIC_LINE 으로 덮지 않음, Round.worse 에 저장 (형태 → 일체형)', () => {
+    const s = play(toDesign(), ...parts([1, 1, 1, 1, 1]), { type: 'runTest' }, { type: 'revise', reason: 'seoyun' },
+      { type: 'setPart', slotId: 'form', partId: 'desk-form-4' });
+    const r = reduce(s, { type: 'runTest' });
+    expect(r.effects!.map((e) => e.e)).toContain('cosmetic_only');
+    const round = r.state.rounds[1];
+    expect(round.worse).toEqual({ seoyun: 'desk-form-4' });
+    expect(round.lines.seoyun).toBe(WORSE_LINE.replace('{part}', '책상+의자 일체형'));
+    expect(round.lines.jian).toBe(COSMETIC_LINE);
+    expect(r.state.rounds[0].worse).toEqual({});
   });
   it('기능 슬롯을 바꾸면 cosmetic_only 아님', () => {
     const s = play(toDesign(), ...parts([1, 1, 1, 1, 1]), { type: 'runTest' }, { type: 'revise', reason: 'hajun' },

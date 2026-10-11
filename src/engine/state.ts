@@ -24,6 +24,8 @@ export function initState(): GameState {
 }
 
 const isElement = (id: string) => ELEMENTS.some((e) => e.id === id);
+// 프로토타입 키('constructor' 등) 차단. tsconfig lib ES2020 이라 Object.hasOwn 대신
+const own = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
 
 export function reduce(s: GameState, a: Action, now = 0): Step {
   const no = (rejected: Reject): Step => ({ state: s, rejected });
@@ -88,7 +90,7 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
 
     case 'pickProduct': {
       if (!at('pick')) return no('wrong_stage');
-      if (!PRODUCTS[a.productId]) return no('unknown_id');
+      if (!own(PRODUCTS, a.productId)) return no('unknown_id');
       // 허용하되 경고 — S6 이 잡는다
       if (!CARDS.some((c) => c.product === a.productId && s.collected.includes(c.id))) log('no_cards_for_product', a.productId);
       log('product', a.productId);
@@ -118,7 +120,8 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
 
     case 'setPart': {
       if (!at('design', 'revise')) return no('wrong_stage');
-      if (!PRODUCTS[s.product!].parts[a.slotId]?.some((p) => p.id === a.partId)) return no('bad_part');
+      const parts = PRODUCTS[s.product!].parts;
+      if (!own(parts, a.slotId) || !parts[a.slotId].some((p) => p.id === a.partId)) return no('bad_part');
       log('part', { slotId: a.slotId, partId: a.partId });
       return done({ draft: { ...s.draft, slots: { ...s.draft.slots, [a.slotId]: a.partId } } });
     }
@@ -143,17 +146,19 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
       const reactions = Object.fromEntries(npcs.map((n) => [n, r[n]!.kind])) as Round['reactions'];
       const lines = Object.fromEntries(npcs.map((n) => [n, r[n]!.line])) as Round['lines'];
       const satisfied = npcs.filter((n) => reactions[n] === 'happy').length;
+      const worse = Object.fromEntries(npcs.filter((n) => r[n]!.worse).map((n) => [n, r[n]!.worse])) as Round['worse'];
       if (prev && cosmeticOnly(prev, slots, satisfied)) {
         log('cosmetic_only');
-        for (const n of npcs) if (reactions[n] !== 'happy') lines[n] = COSMETIC_LINE;
+        // ✗ 부품 지목 줄(§4.3)이 우선
+        for (const n of npcs) if (reactions[n] !== 'happy' && !worse[n]) lines[n] = COSMETIC_LINE;
       }
-      const round: Round = { slots, links, reactions, lines, satisfied };
+      const round: Round = { slots, links, reactions, lines, satisfied, worse };
       if (s.draft.reason) round.reason = s.draft.reason;
       const feedback = [...s.feedback];
-      if (!prev && busTrigger(reactions)) feedback.push('bus');
+      if (!prev && busTrigger(reactions, links)) feedback.push('bus');
       if (techMiss(round)) feedback.push('tech');
       for (const f of feedback.slice(s.feedback.length)) log('feedback', f);
-      log('test', { round: s.rounds.length, satisfied, worse: npcs.filter((n) => r[n]!.worse).map((n) => [n, r[n]!.worse]) });
+      log('test', { round: s.rounds.length, satisfied, worse });
       return go('test', {
         rounds: [...s.rounds, round],
         feedback: [...new Set(feedback)],
@@ -164,7 +169,11 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
     case 'revise': {
       if (!at('test')) return no('wrong_stage');
       if (s.rounds.length >= MAX_ROUNDS) return no('revise_limit');
-      if (!a.reason || !(a.reason in s.rounds[s.rounds.length - 1].reactions)) return no('no_reason');
+      // 이유 = 직전 테스트의 부분·불만 NPC. 전원 만족이면 테스트에 나온 아무 NPC
+      const last = s.rounds[s.rounds.length - 1].reactions;
+      const tested = Object.keys(last) as NpcId[];
+      const unmet = tested.filter((n) => last[n] !== 'happy');
+      if (!a.reason || !(unmet.length ? unmet : tested).includes(a.reason)) return no('no_reason');
       log('revise', a.reason);
       return go('revise', { draft: { ...s.draft, reason: a.reason } });
     }

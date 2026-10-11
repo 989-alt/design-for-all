@@ -4,17 +4,17 @@ import { CASES } from '../content/cases';
 import { ELEMENTS } from '../content/elements';
 import { PRODUCTS } from '../content/products';
 import { SAMPLES } from '../content/samples';
-import type { ProductId } from '../content/types';
+import type { NpcId, ProductId } from '../content/types';
 import { npcsFor, SLOTS } from './judge';
 import { mulberry32 } from './rng';
 import { initState, reduce } from './state';
 import type { Action, GameState } from './types';
 import { verdict } from './verdict';
 
-// PRD §4.7·S7: 무작위 슬롯·연결·태깅·돌아보기 10,000판. 리듀서 직접 호출.
+// PRD §4.7·S7: 제품을 고정하고 무작위 슬롯·연결·태깅·돌아보기 10,000판씩. 리듀서 직접 호출.
 const GAMES = 10_000;
 
-function randomGame(seed: number): GameState {
+function randomGame(seed: number, product: ProductId): GameState {
   const rand = mulberry32(seed);
   const pick = <T,>(xs: readonly T[]): T => xs[Math.floor(rand() * xs.length)];
   let s = initState();
@@ -36,13 +36,12 @@ function randomGame(seed: number): GameState {
     if (left.length) act({ type: 'takeCard', cardId: pick(left).id });
     act({ type: 'nextStage' });
   }
-  act({ type: 'pickProduct', productId: pick(Object.keys(PRODUCTS) as ProductId[]) });
+  act({ type: 'pickProduct', productId: product });
   act({ type: 'nextStage' });
   while (s.research.length < 2) act({ type: 'pickRef', refId: pick(s.refOrder) });
   for (const r of s.research) act({ type: 'linkRef', refId: r.refId, cardId: pick(s.collected) });
   act({ type: 'nextStage' });
 
-  const product = s.product!;
   const own = s.collected.filter((c) => CARDS.find((x) => x.id === c)!.product === product);
   const design = (slots: readonly (typeof SLOTS)[number][]) => {
     for (const slotId of slots) act({ type: 'setPart', slotId, partId: pick(PRODUCTS[product].parts[slotId]).id });
@@ -52,45 +51,47 @@ function randomGame(seed: number): GameState {
   act({ type: 'runTest' });
   const revisions = 1 + Math.floor(rand() * 2);
   for (let i = 0; i < revisions; i++) {
-    act({ type: 'revise', reason: pick(npcsFor(product)) });
+    // 이유 규칙: 직전 라운드 부분·불만 NPC 중 무작위, 전원 만족이면 아무나
+    const last = s.rounds[s.rounds.length - 1].reactions;
+    const tested = Object.keys(last) as NpcId[];
+    const unmet = tested.filter((n) => last[n] !== 'happy');
+    act({ type: 'revise', reason: pick(unmet.length ? unmet : tested) });
     while (s.stage === 'revise') {
       design([pick(SLOTS)]);
       act({ type: 'runTest' }); // 슬롯이 그대로면 no_change 로 거부 → 다시 무작위
     }
   }
   act({ type: 'nextStage' });
-  const praise = SAMPLES.map((sm) => {
-    const element = el();
-    // UI 조립 문장: 주어 · 요소 이름 · 까닭(무작위 조각)
-    return { sampleId: sm.id, element, line: `${sm.title}은 ${ELEMENTS.find((e) => e.id === element)!.name}이 좋아요. ${sm.praise[el()]}` };
-  });
+  // 무작위 element id + T02 까닭 조각 — S5 는 id 로 판정하므로 무작위 플레이어도 성립
+  const praise = SAMPLES.map((sm) => ({ sampleId: sm.id, element: el(), line: sm.praise[el()] }));
   act({ type: 'reflect', good: [el()], fix: [el()], praise });
   act({ type: 'finish' });
   return s;
 }
 
-describe('우회 검사 — 무작위 10,000판 (seed 고정, 제품별)', () => {
-  it('S1~S6 동시 통과 < 1% ∧ 평균 satisfied ≤ n/2', () => {
-    const t0 = performance.now();
-    const stat: Record<ProductId, { games: number; all: number; sat: number }> = {
-      desk: { games: 0, all: 0, sat: 0 }, locker: { games: 0, all: 0, sat: 0 }, door: { games: 0, all: 0, sat: 0 },
-    };
-    for (let g = 0; g < GAMES; g++) {
-      const s = randomGame(20261011 + g);
-      expect(s.stage).toBe('result');
-      const st = stat[s.product!];
-      st.games++;
-      st.sat += s.rounds[s.rounds.length - 1].satisfied;
-      if (verdict(s).passed === 6) st.all++;
-    }
-    const ms = performance.now() - t0;
-    console.log(`우회 검사 ${GAMES}판 ${ms.toFixed(0)}ms`);
-    for (const p of Object.keys(stat) as ProductId[]) {
-      const { games, all, sat } = stat[p];
-      const n = npcsFor(p).length;
-      console.log(`${p}: ${games}판, S1~S6 동시 통과 ${((all / games) * 100).toFixed(2)}%, 평균 만족 ${(sat / games).toFixed(3)} / ${n}`);
-      expect(all / games, p).toBeLessThan(0.01);
-      expect(sat / games, p).toBeLessThanOrEqual(n / 2);
-    }
-  });
+describe('우회 검사 — 제품별 무작위 10,000판 (seed 고정)', () => {
+  for (const product of Object.keys(PRODUCTS) as ProductId[]) {
+    it(`${product}: S1~S6 동시 통과 < 1% ∧ S1∧S2 < 1% ∧ 평균 satisfied ≤ n/2`, () => {
+      const t0 = performance.now();
+      let all = 0, design = 0, sat = 0, s5 = 0;
+      for (let g = 0; g < GAMES; g++) {
+        const s = randomGame(20261011 + g, product);
+        expect(s.stage).toBe('result');
+        const v = verdict(s);
+        sat += s.rounds[s.rounds.length - 1].satisfied;
+        if (v.passed === 6) all++;
+        if (v.S1 && v.S2) design++;
+        if (v.S5) s5++;
+      }
+      const ms = performance.now() - t0;
+      const n = npcsFor(product).length;
+      console.log(`${product}: ${GAMES}판 ${ms.toFixed(0)}ms, S1~S6 ${((all / GAMES) * 100).toFixed(2)}%, S1∧S2 ${((design / GAMES) * 100).toFixed(2)}%, `
+        + `S5 ${((s5 / GAMES) * 100).toFixed(1)}%, 평균 만족 ${(sat / GAMES).toFixed(3)} / ${n} (여유 ${(n / 2 - sat / GAMES).toFixed(3)})`);
+      if (ms > 2000) console.warn(`${product}: 2초 초과 ${ms.toFixed(0)}ms`);
+      expect(all / GAMES).toBeLessThan(0.01);
+      expect(design / GAMES).toBeLessThan(0.01);
+      expect(s5 / GAMES).toBeGreaterThan(0.9); // S5 는 막는 조건이 아님 — 설계 쪽이 막아야 한다
+      expect(sat / GAMES).toBeLessThanOrEqual(n / 2);
+    }, 60_000);
+  }
 });

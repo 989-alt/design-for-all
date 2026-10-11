@@ -3,13 +3,14 @@ import { CASES } from '../content/cases';
 import type { CardId, ElementId, NpcId, PartId, SlotId } from '../content/types';
 import { SLOTS } from './judge';
 import { initState } from './state';
-import type { GameState, Round } from './types';
+import { SAMPLES } from '../content/samples';
+import type { GameState, Praise, Round } from './types';
 import { grade, verdict } from './verdict';
 
 const round = (satisfied: number, nos = [2, 3, 3, 3, 2], links: (CardId | null)[] = ['C09', 'C04', 'C17', 'C06', 'C09'], reason?: NpcId): Round => ({
   slots: Object.fromEntries(SLOTS.map((s, i) => [s, `desk-${s}-${nos[i]}`])) as Record<SlotId, PartId>,
   links: Object.fromEntries(SLOTS.map((s, i) => [s, links[i]])) as Record<SlotId, CardId | null>,
-  reactions: {}, lines: {}, satisfied, ...(reason ? { reason } : {}),
+  reactions: {}, lines: {}, satisfied, worse: {}, ...(reason ? { reason } : {}),
 });
 
 // 6개 전부 통과하는 완주 상태(책상)
@@ -20,9 +21,10 @@ const full = (): GameState => ({
   tags: CASES.map((c) => ({ caseId: c.id, tried: [c.main], correct: true })),
   collected: ['C01', 'C04', 'C06', 'C09'],
   rounds: [round(2), round(6, undefined, undefined, 'seoyun')],
+  // T02 까닭 조각 그대로 — 문장에 요소 이름 없음. 판정은 element id 로
   reflect: { good: ['access'], fix: ['eco'], praise: [
-    { sampleId: 'sample-01', element: 'beauty', line: '접는 벽 책상은 아름다움이 좋아요' },
-    { sampleId: 'sample-02', element: 'access', line: '회전 사물함은 누구나 편리해요' }] },
+    { sampleId: 'sample-01', element: 'beauty', line: SAMPLES[0].praise.beauty },
+    { sampleId: 'sample-02', element: 'access', line: SAMPLES[1].praise.access }] },
 });
 
 const wrong = (main: ElementId): ElementId => (main === 'tech' ? 'eco' : 'tech');
@@ -56,10 +58,13 @@ describe('판정식 — 경계값', () => {
     expect(verdict({ ...full(), tags: tags(['case-01', 'case-02', 'case-03']) }).S4).toBe(false);
     expect(verdict({ ...full(), tags: tags(['case-07']) }).S4).toBe(false);
   });
-  it('S5 — 칭찬 문장에 요소 이름 없으면 실패, 돌아보기 태그 빈 칸 실패', () => {
+  it('S5 — element id 로 판정: 샘플 누락·잘못된 element 실패(throw 없음), 돌아보기 태그 빈 칸 실패', () => {
     const f = full();
-    expect(verdict({ ...f, reflect: { ...f.reflect, praise: [f.reflect.praise[0], { sampleId: 'sample-02', element: 'eco', line: '좋아요' }] } }).S5).toBe(false);
+    const praise = (p: Praise[]) => verdict({ ...f, reflect: { ...f.reflect, praise: p } }).S5;
+    expect(praise([f.reflect.praise[0]])).toBe(false);
+    expect(praise([f.reflect.praise[0], { ...f.reflect.praise[1], element: 'nope' as ElementId }])).toBe(false);
     expect(verdict({ ...f, reflect: { ...f.reflect, fix: [] } }).S5).toBe(false);
+    expect(verdict({ ...f, reflect: { ...f.reflect, good: [] } }).S5).toBe(false);
   });
   it('S6 — NPC 3명 ∧ 제품 카드 3장', () => {
     expect(verdict({ ...full(), collected: ['C01', 'C04', 'C06'] }).S6).toBe(true);
