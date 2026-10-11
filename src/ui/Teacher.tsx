@@ -24,6 +24,19 @@ const RULES = [
   ['S8', '화면 전환 20번·대화 12번 이내로 40분 안에 끝남(자동 검사 + 사람 검증)'],
 ] as const;
 
+// 사람 검증: 결과 화면에서 보이는 5 + 자동 판정 밖 2
+const CHECK = [
+  '만족 수: 디자인 카드의 「만족 ○/○명」에서 만족하지 못한 친구가 1명 이하인가',
+  '수정 이력: 고친 차례마다 「누구의 말을 듣고 고침」이 적혀 있는가',
+  '연결 칩: 부품마다 이어 둔 불편 카드가 그 부품으로 풀리는 불편인가',
+  '등급: 모두의·배려·견습 디자이너 등급이 위 판정식 통과 수와 맞는가',
+  '칭찬 문장: 샘플 작품 2개 칭찬에 요소 이름과 까닭이 함께 들어 있는가',
+] as const;
+const HUMAN = [
+  '학생 설명의 근거: 「왜 이 부품을 골랐나」를 말로 물었을 때 불편 카드의 친구와 상황을 들어 설명하는가',
+  '친구와 비교해 말하기: 짝의 결과 그림과 견주어 같은 점·다른 점을 디자인 요소로 말하는가',
+] as const;
+
 export function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div class="stage studio teacher">
@@ -46,7 +59,10 @@ export function Teacher({ onClose }: { onClose: () => void }) {
           <p>S1~S6 통과 수로 등급을 정합니다: 6 → 모두의 디자이너, 4~5 → 배려 디자이너, 3 이하 → 견습 디자이너.</p>
           <dl>{RULES.map(([id, d]) => <><dt>{id}</dt><dd>{d}</dd></>)}</dl>
           <h2 class="jua">사람 검증 체크리스트</h2>
-          <ul class="human-check"><li>준비 중입니다.</li></ul>
+          <p>결과 화면만 보고 확인합니다.</p>
+          <ul class="human-check">{CHECK.map((c) => <li>{c}</li>)}</ul>
+          <p>자동 판정이 보지 못하는 것 — 수업에서 직접 확인하세요.</p>
+          <ul class="human-check">{HUMAN.map((c) => <li>{c}</li>)}</ul>
         </div>
       </section>
     </div>

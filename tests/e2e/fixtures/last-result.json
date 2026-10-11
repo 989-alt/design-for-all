@@ -1,0 +1,572 @@
+{
+  "v": 1,
+  "seed": 20261011,
+  "stage": "result",
+  "startedAt": 1791676800000,
+  "npcOrder": [
+    "dohyun",
+    "jian",
+    "seoyun",
+    "grandma",
+    "haeun",
+    "hajun"
+  ],
+  "refOrder": [
+    "ref-03",
+    "ref-02",
+    "ref-12",
+    "ref-08",
+    "ref-09",
+    "ref-05",
+    "ref-01",
+    "ref-04",
+    "ref-10",
+    "ref-07",
+    "ref-06",
+    "ref-11"
+  ],
+  "tags": [
+    {
+      "caseId": "case-01",
+      "tried": [
+        "tech"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-02",
+      "tried": [
+        "tech"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-03",
+      "tried": [
+        "access"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-04",
+      "tried": [
+        "eco"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-05",
+      "tried": [
+        "eco"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-06",
+      "tried": [
+        "beauty"
+      ],
+      "correct": true
+    },
+    {
+      "caseId": "case-07",
+      "tried": [
+        "access"
+      ],
+      "correct": true
+    }
+  ],
+  "collected": [
+    "C01",
+    "C04",
+    "C06",
+    "C09",
+    "C14",
+    "C17"
+  ],
+  "product": "desk",
+  "research": [
+    {
+      "refId": "ref-07",
+      "cardId": "C06"
+    },
+    {
+      "refId": "ref-02",
+      "cardId": "C04"
+    }
+  ],
+  "draft": {
+    "slots": {
+      "form": "desk-form-2",
+      "funcA": "desk-funcA-4",
+      "funcB": "desk-funcB-3",
+      "material": "desk-material-3",
+      "color": "desk-color-2"
+    },
+    "links": {
+      "form": "C09",
+      "funcA": "C01",
+      "funcB": "C17",
+      "material": "C06",
+      "color": "C09"
+    }
+  },
+  "rounds": [
+    {
+      "slots": {
+        "form": "desk-form-2",
+        "funcA": "desk-funcA-3",
+        "funcB": "desk-funcB-3",
+        "material": "desk-material-3",
+        "color": "desk-color-2"
+      },
+      "links": {
+        "form": "C09",
+        "funcA": "C01",
+        "funcB": "C17",
+        "material": "C06",
+        "color": "C09"
+      },
+      "reactions": {
+        "seoyun": "happy",
+        "dohyun": "happy",
+        "hajun": "happy",
+        "jian": "happy",
+        "haeun": "happy",
+        "grandma": "happy"
+      },
+      "lines": {
+        "seoyun": "수동 높이 조절 레버 덕분에 휠체어가 책상 밑에 쏙 들어가요!",
+        "dohyun": "수동 높이 조절 레버 덕분에 무릎이 안 부딪혀요!",
+        "hajun": "가벼운 알루미늄 덕분에 한 손으로도 책상을 옮겨요!",
+        "jian": "모서리 둥글고 고대비 테두리 덕분에 책상 모서리가 잘 보여요!",
+        "haeun": "수동 높이 조절 레버 덕분에 발이 바닥에 닿아요!",
+        "grandma": "옆 가방·지팡이 걸이 덕분에 가방이랑 지팡이를 걸었구나."
+      },
+      "satisfied": 6,
+      "worse": {}
+    },
+    {
+      "slots": {
+        "form": "desk-form-2",
+        "funcA": "desk-funcA-4",
+        "funcB": "desk-funcB-3",
+        "material": "desk-material-3",
+        "color": "desk-color-2"
+      },
+      "links": {
+        "form": "C09",
+        "funcA": "C01",
+        "funcB": "C17",
+        "material": "C06",
+        "color": "C09"
+      },
+      "reactions": {
+        "seoyun": "happy",
+        "dohyun": "happy",
+        "hajun": "happy",
+        "jian": "happy",
+        "haeun": "happy",
+        "grandma": "happy"
+      },
+      "lines": {
+        "seoyun": "전동 높이 조절 덕분에 휠체어가 책상 밑에 쏙 들어가요!",
+        "dohyun": "전동 높이 조절 덕분에 무릎이 안 부딪혀요!",
+        "hajun": "가벼운 알루미늄 덕분에 한 손으로도 책상을 옮겨요!",
+        "jian": "모서리 둥글고 고대비 테두리 덕분에 책상 모서리가 잘 보여요!",
+        "haeun": "전동 높이 조절 덕분에 발이 바닥에 닿아요!",
+        "grandma": "옆 가방·지팡이 걸이 덕분에 가방이랑 지팡이를 걸었구나."
+      },
+      "satisfied": 6,
+      "worse": {},
+      "reason": "seoyun"
+    }
+  ],
+  "reflect": {
+    "good": [
+      "access"
+    ],
+    "fix": [
+      "eco"
+    ],
+    "praise": [
+      {
+        "sampleId": "sample-01",
+        "element": "purpose",
+        "line": "좁은 교실에서도 자리를 덜 차지해서"
+      },
+      {
+        "sampleId": "sample-02",
+        "element": "access",
+        "line": "돌리면 내 칸이 앞으로 오니까"
+      }
+    ]
+  },
+  "feedback": [],
+  "log": [
+    {
+      "t": 1791676800000,
+      "e": "start",
+      "d": 20261011
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "cases"
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-01",
+        "elementId": "tech",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-02",
+        "elementId": "tech",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-03",
+        "elementId": "access",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-04",
+        "elementId": "eco",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-05",
+        "elementId": "eco",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-06",
+        "elementId": "beauty",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "tag.case",
+      "d": {
+        "caseId": "case-07",
+        "elementId": "access",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "classroom"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "seoyun"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C01"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "dohyun"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C04"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "hajun"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C06"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "jian"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C09"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "haeun"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C14"
+    },
+    {
+      "t": 1791676800000,
+      "e": "talk",
+      "d": "grandma"
+    },
+    {
+      "t": 1791676800000,
+      "e": "card",
+      "d": "C17"
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "pick"
+    },
+    {
+      "t": 1791676800000,
+      "e": "product",
+      "d": "desk"
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "research"
+    },
+    {
+      "t": 1791676800000,
+      "e": "research.pick",
+      "d": "ref-07"
+    },
+    {
+      "t": 1791676800000,
+      "e": "research.link",
+      "d": {
+        "refId": "ref-07",
+        "cardId": "C06",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "research.pick",
+      "d": "ref-02"
+    },
+    {
+      "t": 1791676800000,
+      "e": "research.link",
+      "d": {
+        "refId": "ref-02",
+        "cardId": "C04",
+        "correct": true
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "design"
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "form",
+        "partId": "desk-form-2"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "link",
+      "d": {
+        "slotId": "form",
+        "cardId": "C09"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "funcA",
+        "partId": "desk-funcA-3"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "link",
+      "d": {
+        "slotId": "funcA",
+        "cardId": "C01"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "funcB",
+        "partId": "desk-funcB-3"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "link",
+      "d": {
+        "slotId": "funcB",
+        "cardId": "C17"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "material",
+        "partId": "desk-material-3"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "link",
+      "d": {
+        "slotId": "material",
+        "cardId": "C06"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "color",
+        "partId": "desk-color-2"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "link",
+      "d": {
+        "slotId": "color",
+        "cardId": "C09"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "test",
+      "d": {
+        "round": 0,
+        "satisfied": 6,
+        "worse": {}
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "test"
+    },
+    {
+      "t": 1791676800000,
+      "e": "revise",
+      "d": "seoyun"
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "revise"
+    },
+    {
+      "t": 1791676800000,
+      "e": "part",
+      "d": {
+        "slotId": "funcA",
+        "partId": "desk-funcA-4"
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "test",
+      "d": {
+        "round": 1,
+        "satisfied": 6,
+        "worse": {}
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "test"
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "reflect"
+    },
+    {
+      "t": 1791676800000,
+      "e": "reflect",
+      "d": {
+        "good": [
+          "access"
+        ],
+        "fix": [
+          "eco"
+        ],
+        "praise": [
+          [
+            "sample-01",
+            "purpose"
+          ],
+          [
+            "sample-02",
+            "access"
+          ]
+        ]
+      }
+    },
+    {
+      "t": 1791676800000,
+      "e": "stage",
+      "d": "result"
+    }
+  ],
+  "scores": {
+    "access": 100,
+    "purpose": 100,
+    "function": 100,
+    "beauty": 100,
+    "eco": 50,
+    "tech": 100
+  },
+  "verdict": {
+    "S1": true,
+    "S2": true,
+    "S3": true,
+    "S4": true,
+    "S5": true,
+    "S6": true,
+    "S8": true,
+    "passed": 6,
+    "grade": "master"
+  },
+  "firstCorrect": 7
+}
