@@ -5,11 +5,12 @@
 .k-card{border-style:solid;border-color:transparent;border-width:19px 8px 8px 19px;border-image:url(/assets/kit/card-trouble.png) 100 40 40 100 fill / 19px 8px 8px 19px stretch}
 .k-chip{border:16px solid transparent;border-image:url(/assets/kit/chip.png) 80 fill / 16px stretch;height:32px}
 .k-step{border:20px solid transparent;border-image:url(/assets/kit/step.png) 80 fill / 20px stretch;height:40px}
-.k-step-now{border-style:solid;border-color:transparent;border-width:13px 20px 18px 18px;border-image:url(/assets/kit/step-now.png) 50 85 70 80 fill / 13px 20px 18px 18px stretch;height:44px;color:var(--accent-foreground)}
+.k-step-now{border-style:solid;border-color:transparent;border-width:13px 20px 18px 18px;border-image:url(/assets/kit/step-now-hc.png) 56 94 76 82 fill / 13px 20px 18px 18px stretch;height:44px;color:var(--accent-foreground)}
 .k-btn{border-style:solid;border-color:transparent;border-width:20px 25px 28px 20px;border-image:url(/assets/kit/btn-teal.png) 40 50 56 40 fill / 20px 25px 28px 20px stretch;height:64px;color:var(--primary-foreground)}
-.k-btn.coral{border-image-source:url(/assets/kit/btn-coral.png);color:var(--accent-foreground)}
+.k-btn.coral{border-image-source:url(/assets/kit/btn-coral-hc.png);color:var(--accent-foreground)}
 .k-btn.paper{border-image-source:url(/assets/kit/btn-paper.png);color:var(--secondary-foreground);height:56px}
 .k-btn.pressed{border-image-source:url(/assets/kit/btn-teal-pressed.png);border-width:18px 22px 22px 18px;transform:translateY(4px)}
+.k-btn.coral.pressed{border-image-source:url(/assets/kit/btn-coral-pressed-hc.png)}
 .k-tool{border-style:solid;border-color:transparent;border-width:14px 16px 19px 14px;border-image:url(/assets/kit/tool.png) 50 60 70 50 fill / 14px 16px 19px 14px stretch;width:64px;height:48px}
 .k-tool.on{border-image-source:url(/assets/kit/tool-on.png);color:var(--primary-foreground)}
 .k-panel.thin{border-width:14px 16px 20px 14px;border-image-width:14px 16px 20px 14px}
@@ -17,6 +18,12 @@
 .k-step,.k-step-now,.k-chip,.k-btn,.k-tool,.k-card{display:inline-block;vertical-align:middle}
 .k-track{border:7px solid transparent;border-image:url(/assets/kit/gauge-track.png) 48 fill / 7px stretch;height:14px}
 .k-fill{border:7px solid transparent;border-image:url(/assets/kit/gauge-fill.png) 48 fill / 7px stretch;height:14px}
+/* DESIGN「고대비 킷 매핑」: 코랄 계열(위 .coral·.k-step-now)은 두 테마 모두 벽돌색 *-hc(기본 4.5:1). 고대비는 청록·도구·단계도 *-hc. 슬라이스는 새 PNG 모서리 실측(btn·tool·step 은 기존 값이 모서리를 덮어 그대로) */
+html[data-contrast=high] .k-btn:not(.paper):not(.coral){border-image-source:url(/assets/kit/btn-teal-hc.png)}
+html[data-contrast=high] .k-btn.pressed:not(.paper):not(.coral){border-image-source:url(/assets/kit/btn-teal-pressed-hc.png)}
+html[data-contrast=high] .k-tool{border-image-source:url(/assets/kit/tool-hc.png)}
+html[data-contrast=high] .k-tool.on{border-image-source:url(/assets/kit/tool-on-hc.png)}
+html[data-contrast=high] .k-step{border-image-source:url(/assets/kit/step-hc.png)}
 /* .sm 라벨 */
 .sm{font-size:var(--text-sm);font-weight:700;color:var(--muted-foreground)}
 .k-tool{width:64px;font-size:calc(var(--text-sm) * .875)} .k-tool .sm{font-size:calc(var(--text-sm) * .875)} .k-tool.on .sm{color:var(--primary-foreground)}

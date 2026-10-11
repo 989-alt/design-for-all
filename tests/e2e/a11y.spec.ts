@@ -407,3 +407,48 @@ test('터치 타깃: 축소 화면 1024×640·960×600 에서도 모든 상호�
   }
   expect(small).toEqual({});
 });
+
+// QA r1 #3: 토큰 쌍이 아니라 렌더된 스프라이트 면 위 글자 대비. 글자를 숨기고 찍은 뒤 글자 상자 안 15점의 면색 중 최악으로 잰다
+test('렌더 대비: 청록·코랄·도구 켬·지금 단계 글자 — 기본 4.5:1, 고대비 7:1', async ({ page }) => {
+  test.setTimeout(120_000);
+  const lum = (c: number[]) => c.map((v) => v / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a: number[], b: number[]) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const measure = async (sel: string) => {
+    const el = page.locator(sel).first();
+    const { fg, box } = await el.evaluate((e) => {
+      const s = e.querySelector<HTMLElement>('.lbl>span')!;
+      const [a, b] = [e.getBoundingClientRect(), s.getBoundingClientRect()];
+      (e.querySelector('.lbl') as HTMLElement).style.visibility = 'hidden';
+      return { fg: getComputedStyle(s).color.match(/[\d.]+/g)!.slice(0, 3).map(Number), box: [b.left - a.left, b.top - a.top, b.width, b.height] };
+    });
+    const png = (await el.screenshot()).toString('base64');
+    await el.evaluate((e) => { (e.querySelector('.lbl') as HTMLElement).style.visibility = ''; });
+    const bgs = await page.evaluate(async ({ png, box: [x, y, w, h] }) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${png}`;
+      await img.decode();
+      const c = document.createElement('canvas');
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext('2d')!;
+      g.drawImage(img, 0, 0);
+      const out: number[][] = [];
+      for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const fy of [0.2, 0.5, 0.8]) out.push([...g.getImageData(Math.round(x + w * fx), Math.round(y + h * fy), 1, 1).data.slice(0, 3)]);
+      return out;
+    }, { png, box });
+    return Math.min(...bgs.map((bg) => ratio(fg, bg)));
+  };
+  const low: string[] = [];
+  for (const contrast of ['', 'high']) {
+    const need = contrast ? 7 : 4.5;
+    const check = async (sel: string) => { const r = await measure(sel); if (r < need) low.push(`${contrast || 'base'} ${sel} ${r.toFixed(2)} < ${need}`); };
+    // 고르기 화면: 코랄 다음 버튼 · 지금 단계 · 켜진 소리 도구
+    await reach(page, 'pick');
+    await page.evaluate((c) => { document.documentElement.dataset.contrast = c; }, contrast);
+    for (const sel of ['.k-btn.coral', '.k-step-now', '.k-tool.on']) await check(sel);
+    // 결과 화면: 청록 저장 버튼
+    await reach(page, 'result');
+    await page.evaluate((c) => { document.documentElement.dataset.contrast = c; }, contrast);
+    await check('.k-btn:not(.coral):not(.paper)');
+  }
+  expect(low).toEqual([]);
+});
