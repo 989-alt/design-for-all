@@ -29,6 +29,19 @@ const img = (src: string) =>
     i.onerror = no;
     i.src = src;
   });
+// canvas 에 그리는 그림은 data URL 로만 — file:// 에선 파일 그림이 canvas 를 오염시켜 PNG 로 못 뽑는다.
+// copy-assets 가 만든 assets/img64/<id>.js 를 <script> 로 넣어 읽는다(fetch 없음, CSP connect-src 'none' 유지)
+const kit64 = (id: string) =>
+  new Promise<HTMLImageElement>((ok, no) => {
+    const w = window as unknown as { __dfaImg?: Record<string, string> };
+    const done = () => (w.__dfaImg?.[id] ? img(w.__dfaImg[id]).then(ok, no) : no(new Error(id)));
+    if (w.__dfaImg?.[id]) return done();
+    const s = document.createElement('script');
+    s.src = `./assets/img64/${id}.js`;
+    s.onload = done;
+    s.onerror = no;
+    document.head.append(s);
+  });
 type G = CanvasRenderingContext2D;
 const contain = (g: G, im: HTMLImageElement, x: number, y: number, w: number, h: number) => {
   const k = Math.min(w / im.naturalWidth, h / im.naturalHeight);
@@ -39,7 +52,7 @@ const contain = (g: G, im: HTMLImageElement, x: number, y: number, w: number, h:
 async function drawProduct(g: G, product: ProductId, slots: Record<SlotId, PartId>, S: number) {
   const form = partOf(slots.form);
   const no = Number(form.id.slice(-1)) as PartNo;
-  const shape = await img(kit(form.assetId!));
+  const shape = await kit64(form.assetId!);
   g.fillStyle = cssVar('--surface-slot');
   g.fillRect(0, 0, S, S);
   contain(g, shape, 0, 0, S, S);
@@ -63,14 +76,14 @@ async function drawProduct(g: G, product: ProductId, slots: Record<SlotId, PartI
     g.restore();
   };
   const material = partOf(slots.material).assetId;
-  if (material) tint(await img(kit(material)), 0.8);
+  if (material) tint(await kit64(material), 0.8);
   const color = partOf(slots.color).color;
-  if (color) tint(color.kind === 'solid' ? cssVar(`--${color.token}`) : await img(kit(color.assetId)), 0.65);
+  if (color) tint(color.kind === 'solid' ? cssVar(`--${color.token}`) : await kit64(color.assetId), 0.65);
   for (const slot of ['funcA', 'funcB'] as const) {
     const p = partOf(slots[slot]);
     if (!p.assetId) continue;
     const a = anchorOf(product, no, slot, p.id);
-    contain(g, await img(kit(p.assetId)), (a.x - a.s / 2) * S, (a.y - a.s / 2) * S, a.s * S, a.s * S);
+    contain(g, await kit64(p.assetId), (a.x - a.s / 2) * S, (a.y - a.s / 2) * S, a.s * S, a.s * S);
   }
   const label = partOf(slots.funcB).assetId;
   const text = label && !NO_TEXT.includes(label) && LABEL_TEXT[product];
@@ -93,7 +106,7 @@ function frame(g: G, im: HTMLImageElement, W: number, H: number) {
 }
 
 // 결과 카드 영역만 canvas 에 2배로 다시 그린다: 패널 틀·레이더 면·그림(제품 미리보기 canvas 포함)·글자(DOM 에 보이는 그대로)
-async function saveCard(card: HTMLElement, sc: Scores, seed: number) {
+async function saveCard(card: HTMLElement, sc: Scores, seed: number, product: ProductId, slots: Record<SlotId, PartId>) {
   const box = card.getBoundingClientRect();
   const k = card.offsetWidth / box.width; // 무대 축소를 되돌린다
   const [W, H] = [card.offsetWidth, card.offsetHeight];
@@ -103,7 +116,7 @@ async function saveCard(card: HTMLElement, sc: Scores, seed: number) {
   const g = c.getContext('2d')!;
   g.scale(2, 2);
   const xy = (r: DOMRect) => [(r.left - box.left) * k, (r.top - box.top) * k, r.width * k, r.height * k] as const;
-  frame(g, await img(kit('panel')), W, H);
+  frame(g, await kit64('panel'), W, H);
   const [ax, ay, aw, ah] = xy(card.querySelector('.radar')!.getBoundingClientRect());
   for (const [pts, color, alpha] of [[radarOuter, '--border', 0.3], [radarPoints(sc), '--primary', 0.35]] as const) {
     g.globalAlpha = alpha;
@@ -113,9 +126,17 @@ async function saveCard(card: HTMLElement, sc: Scores, seed: number) {
     g.fill();
   }
   g.globalAlpha = 1;
-  card.querySelectorAll<HTMLImageElement | HTMLCanvasElement>('img, canvas').forEach((el) => {
-    if (el instanceof HTMLCanvasElement || el.naturalWidth) g.drawImage(el, ...xy(el.getBoundingClientRect()));
-  });
+  // 화면의 img·canvas 를 복사하면 file:// 에서 오염되므로 같은 자리에 data URL 그림으로 다시 그린다
+  for (const el of card.querySelectorAll<HTMLImageElement | HTMLCanvasElement>('img, canvas')) {
+    const [x, y, w, h] = xy(el.getBoundingClientRect());
+    if (el instanceof HTMLCanvasElement) {
+      g.save();
+      g.translate(x, y);
+      g.scale(w / 180, h / 180);
+      await drawProduct(g, product, slots, 180);
+      g.restore();
+    } else g.drawImage(await kit64(el.getAttribute('src')!.match(/([^/]+)\.png$/)![1]), x, y, w, h);
+  }
   const walk = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
   const range = document.createRange();
   g.textBaseline = 'middle';
@@ -172,7 +193,7 @@ export function Result() {
     drawProduct(g, p.id, last.slots, 180).catch(() => {});
   }, []);
 
-  const onSave = () => saveCard(card.current!, sc, state.seed).then((ok) => setFail(!ok), () => setFail(true));
+  const onSave = () => saveCard(card.current!, sc, state.seed, p.id, last.slots).then((ok) => setFail(!ok), () => setFail(true));
 
   return (
     <div class="stage studio result">

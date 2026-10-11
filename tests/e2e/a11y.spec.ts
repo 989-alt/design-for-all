@@ -381,3 +381,29 @@ test('터치 타깃: 모든 버튼·카드 44×44 이상(무대 스케일 1)', a
   await scan('reflect large');
   expect(small).toEqual({});
 });
+
+// 무대가 축소돼도(--tap-min 보정) 화면 px 로 44 이상. QA r1 #2: 조사 화면 불편 카드가 40·38px 이었다
+test('터치 타깃: 축소 화면 1024×640·960×600 에서도 모든 상호작용 요소 44×44 이상', async ({ page }) => {
+  test.setTimeout(180_000);
+  const small: Record<string, string[]> = {};
+  for (const s of STEPS) {
+    await reach(page, s);
+    if (s === 'test') {
+      await expect(page.locator('.tp:not(.wait)')).toHaveCount(6, { timeout: 8000 });
+      await page.getByRole('dialog').getByRole('button').press('Enter');
+    }
+    for (const size of [{ width: 1024, height: 640 }, { width: 960, height: 600 }]) {
+      await page.setViewportSize(size);
+      await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--stage-scale'))).not.toBe('1');
+      const r = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('button,[role=button],[role=radio],a[href],input,select,textarea,summary')]
+          .filter((e) => !e.closest('[inert]') && getComputedStyle(e).visibility !== 'hidden')
+          .map((e) => [e.getBoundingClientRect(), e] as const)
+          .filter(([b]) => b.width > 0 && (b.width < 43.99 || b.height < 43.99))
+          .map(([b, e]) => `${e.className || e.tagName} ${b.width.toFixed(1)}x${b.height.toFixed(1)} "${(e.getAttribute('aria-label') || e.innerText).slice(0, 16)}"`),
+      );
+      if (r.length) small[`${s} ${size.width}`] = r;
+    }
+  }
+  expect(small).toEqual({});
+});

@@ -14,7 +14,8 @@ Object.assign(globalThis, {
 });
 
 const started = () => reduce(initState(), { type: 'start', seed: 7 }, 1).state;
-const round = { slots: {}, links: {}, reactions: {}, lines: {}, satisfied: 5, worse: {} } as GameState['rounds'][number];
+const slots = { form: 'desk-form-1', funcA: 'desk-funcA-1', funcB: 'desk-funcB-1', material: 'desk-material-1', color: 'desk-color-1' } as const;
+const round = { slots, links: {}, reactions: {}, lines: {}, satisfied: 5, worse: {} } as GameState['rounds'][number];
 const finished = (): GameState => ({ ...started(), stage: 'result', product: 'desk', rounds: [round] });
 
 describe('save', () => {
@@ -78,6 +79,32 @@ describe('save', () => {
     }
     save({ ...started(), stage: 'pick' });
     expect(load()?.stage).toBe('pick');
+  });
+
+  it('콘텐츠 표에 없는 id·깨진 원소는 null (QA r1 #1 세 사례 + 그 밖)', () => {
+    for (const bad of [
+      { ...finished(), rounds: [{ ...round, slots: { ...slots, form: 'desk-form-99' } }] },
+      { ...finished(), tags: [null] },
+      { ...finished(), stage: 'research', refOrder: ['missing'] },
+      { ...finished(), rounds: [{ ...round, slots: { ...slots, form: 'locker-form-1' } }] },
+      { ...finished(), rounds: [{ ...round, slots: { ...slots, color: undefined } }] },
+      { ...finished(), collected: ['C99'] },
+      { ...finished(), npcOrder: ['boss'] },
+      { ...finished(), research: [{ refId: 'ref-01', cardId: 'C99' }] },
+      { ...finished(), rounds: [{ ...round, reactions: { seoyun: 'angry' } }] },
+      { ...finished(), reflect: { good: [], fix: [], praise: [{ sampleId: 'nope', element: 'purpose', line: '' }] } },
+      { ...finished(), log: [null] },
+    ]) {
+      mem.set(SAVE_KEY, JSON.stringify({ v: 1, state: bad }));
+      expect(load(), JSON.stringify(bad).slice(0, 120)).toBeNull();
+    }
+  });
+
+  it('저장소가 막혀도 clear 는 던지지 않는다', () => {
+    const rm = localStorage.removeItem;
+    localStorage.removeItem = () => { throw new DOMException('blocked', 'SecurityError'); };
+    expect(() => clear()).not.toThrow();
+    localStorage.removeItem = rm;
   });
 
   it('저장이 막혀도(용량 초과) 던지지 않는다', () => {

@@ -1,6 +1,8 @@
 import type { FunctionComponent } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useErrorBoundary, useState } from 'preact/hooks';
 import { exportResult } from './engine/export';
+import { clear } from './engine/save';
+import { initState } from './engine/state';
 import type { Stage } from './engine/types';
 import { Cases } from './ui/Cases';
 import { Classroom } from './ui/Classroom';
@@ -9,7 +11,7 @@ import { applyPref } from './ui/pref';
 import { Reflect } from './ui/Reflect';
 import { Research } from './ui/Research';
 import { Result } from './ui/Result';
-import { getState, useGame } from './ui/store';
+import { getState, hydrate, useGame } from './ui/store';
 import { Studio } from './ui/Studio';
 import { Teacher } from './ui/Teacher';
 import { Test } from './ui/Test';
@@ -45,6 +47,11 @@ export function App() {
   }, []);
 
   const { state } = useGame();
+  // 오류 경계: 화면이 렌더 중 죽으면(검증을 빠져나간 손상 저장본 등) 저장본을 지우고 타이틀로
+  useErrorBoundary(() => {
+    clear();
+    hydrate(initState());
+  });
   const [teacher, setTeacher] = useState(query.get('teacher') === '1');
   if (teacher) return <Teacher onClose={() => setTeacher(false)} />;
   const Screen = SCREENS[state.stage];
