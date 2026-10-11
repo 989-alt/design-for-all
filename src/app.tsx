@@ -7,11 +7,13 @@ import { Pick } from './ui/Pick';
 import { Hud } from './ui/Progress';
 import { Research } from './ui/Research';
 import { getState, useGame } from './ui/store';
+import { Studio } from './ui/Studio';
+import { Test } from './ui/Test';
 import { Title } from './ui/Title';
 import './styles/ui.css';
 
-const SCREENS: Partial<Record<Stage, FunctionComponent>> = { title: Title, cases: Cases, classroom: Classroom, pick: Pick, research: Research };
-// 조립대 이후 화면은 T05~ 에서 채운다
+const SCREENS: Partial<Record<Stage, FunctionComponent>> = { title: Title, cases: Cases, classroom: Classroom, pick: Pick, research: Research, design: Studio, test: Test, revise: Studio };
+// 돌아보기 이후 화면은 T06~ 에서 채운다
 const Later = () => <div class="stage studio"><Hud /></div>;
 
 const KEY = 'dfa.pref';
