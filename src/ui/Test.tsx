@@ -3,15 +3,14 @@ import { CARDS } from '../content/cards';
 import { NPCS } from '../content/npcs';
 import { PRODUCTS } from '../content/products';
 import type { NpcId, ReactionKind } from '../content/types';
-import { partOf, SLOTS } from '../engine/judge';
+import { partOf, SLOTS, techMiss } from '../engine/judge';
 import { reduce } from '../engine/state';
 import { Feedback } from './Feedback';
 import { Hud } from './Progress';
-import { Revise } from './Revise';
+import { REACT, Revise } from './Revise';
 import { advance, useGame } from './store';
 import '../styles/studio.css';
 
-export const REACT: Record<ReactionKind, string> = { happy: '만족', partial: '부분', unhappy: '불만' };
 const STEP_MS = 500;
 const kit = (id: string) => `./assets/kit/${id}.png`;
 
@@ -34,14 +33,14 @@ export function Test() {
     return () => clearTimeout(t);
   }, [shown]);
 
-  // 이번 테스트가 새로 낸 피드백 = 직전 'test' 로그와 이번 'test' 로그 사이의 'feedback'
-  const tests = state.log.flatMap((l, i) => (l.e === 'test' ? [i] : []));
-  const fbs = state.log.slice((tests[tests.length - 2] ?? -1) + 1, tests[tests.length - 1]).filter((l) => l.e === 'feedback').map((l) => l.d as 'bus' | 'tech');
+  // 이번 테스트의 피드백: 저상 버스(M1)는 1차에만, 첨단(M3)은 이번 라운드가 놓쳤으면
+  const fbs = [...(r === 1 && state.feedback.includes('bus') ? ['bus' as const] : []), ...(techMiss(round) ? ['tech' as const] : [])];
   const done = shown >= tested.length;
   const modal = done && closed < fbs.length ? fbs[closed] : null;
 
   const vis = tested.slice(0, shown);
-  const cur = sel ?? vis[vis.length - 1];
+  // 연출 중엔 막 나온 사람, 끝나면 첫 부분·불만(없으면 첫 사람)
+  const cur = sel ?? (done ? (tested.find((n) => round.reactions[n] !== 'happy') ?? tested[0]) : vis[vis.length - 1]);
   const count = (k: ReactionKind) => vis.filter((n) => round.reactions[n] === k).length;
   const canReflect = !reduce(state, { type: 'nextStage' }).rejected;
 

@@ -7,6 +7,14 @@ import { useGame } from './store';
 
 const ICON: Record<SlotId, string> = { form: 'icon-shape', funcA: 'icon-height', funcB: 'icon-move', material: 'icon-material', color: 'icon-color' };
 const npcName = (id: string) => NPCS.find((n) => n.id === id)!.name;
+// 부품 버튼 사이 화살표 이동(고르기는 Enter·Space)
+const arrow = (e: KeyboardEvent) => {
+  const d = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const bs = [...(e.currentTarget as HTMLElement).querySelectorAll('button')];
+  bs[(bs.indexOf(document.activeElement as HTMLButtonElement) + d + bs.length) % bs.length].focus();
+};
 
 // 슬롯 한 행: 슬롯 버튼(이름·고른 부품) + 연결 칩. 지금 슬롯이면 부품 4 버튼이 펼쳐진다
 export function Slot({ slot, now, onOpen, onPick, onLink }: {
@@ -24,14 +32,17 @@ export function Slot({ slot, now, onOpen, onPick, onLink }: {
   const last = state.rounds[state.rounds.length - 1];
   // 직전 테스트에서 ✗ 로 지목된 부품이 아직 그대로면 표시
   const worse = last && cur && (Object.entries(last.worse) as [string, PartId][]).filter(([, p]) => p === cur).map(([n]) => npcName(n));
-  const chip = link ? npcName(CARDS.find((c) => c.id === link)!.npc) : link === null ? '없음' : '+ 연결';
+  // '없음' 은 학생이 고른 것만. 부품 교체로 지워졌거나 안 고른 연결(테스트 뒤 엔진이 null 로 채움)은 '+ 연결'.
+  // 교체 때 지우기는 setPart 앞에 보내므로, 이 슬롯의 마지막 기록이 link 일 때만 학생이 고른 것
+  const lastLog = state.log.filter((l) => (l.e === 'part' || l.e === 'link') && (l.d as { slotId: SlotId }).slotId === slot).pop();
+  const chip = link ? npcName(CARDS.find((c) => c.id === link)!.npc) : link === null && lastLog?.e === 'link' ? '없음' : '+ 연결';
   return (
     <div class={`srow${now ? ' now' : ''}`}>
       <button class="sname" aria-expanded={now} aria-label={`${sname} 슬롯${cur ? ` · ${partOf(cur).name}` : ' · 비어 있음'}`} onClick={onOpen}>
         <img class="icon" src={`./assets/kit/${ICON[slot]}.png`} width={32} height={32} alt="" /> {sname}
       </button>
       {now ? (
-        <span class="opts" role="radiogroup" aria-label={`${sname} 부품`}>
+        <span class="opts" role="radiogroup" aria-label={`${sname} 부품`} onKeyDown={arrow}>
           {prod.parts[slot].map((p) => (
             <button class="k-btn paper opt" role="radio" aria-checked={cur === p.id} onClick={() => onPick(p)}>
               <span class="lbl"><span>{cur === p.id && <img class="icon" src="./assets/kit/icon-check.png" width={18} height={18} alt="" />} {p.name}</span></span>

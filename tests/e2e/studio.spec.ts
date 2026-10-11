@@ -1,9 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import type { CardId, NpcId } from '../../src/content/types';
+import type { CardId, NpcId, ProductId } from '../../src/content/types';
+import { NPCS } from '../../src/content/npcs';
 import { act, getState, open, tagAllCases } from './helpers';
 
 // 책상 카드 6장을 다 모으고 조사 2장을 이어 조립대(design)까지
-async function toDesign(page: Page) {
+async function toDesign(page: Page, productId: ProductId = 'desk') {
   await open(page);
   await tagAllCases(page);
   await act(page, { type: 'nextStage' });
@@ -13,7 +14,7 @@ async function toDesign(page: Page) {
     await act(page, { type: 'takeCard', cardId });
   }
   await act(page, { type: 'nextStage' });
-  await act(page, { type: 'pickProduct', productId: 'desk' });
+  await act(page, { type: 'pickProduct', productId });
   await act(page, { type: 'nextStage' });
   await act(page, { type: 'pickRef', refId: 'ref-07' });
   await act(page, { type: 'linkRef', refId: 'ref-07', cardId: 'C06' });
@@ -43,14 +44,35 @@ test('키보드만으로 1라운드: 5슬롯·연결 → ★경고 → 테스트
 
   // 형태 → 연결 패널 자동 열림(이 제품 카드 6 + 없음), 첫 카드에 포커스
   await expect(page.locator('.pv-art > *')).toHaveCount(0);
-  await enter(page, page.getByRole('radio', { name: '네모 모서리' }));
+  // 부품 버튼 사이 화살표 이동
+  await page.getByRole('radio', { name: '네모 모서리' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('radio', { name: '모서리 둥글고 고대비 테두리' })).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByRole('radio', { name: '네모 모서리' })).toBeFocused();
+  await page.keyboard.press('Enter');
   await expect(page.locator('.tray.open')).toBeVisible();
   await expect(page.locator('.tray.open .tcard')).toHaveCount(6);
   await expect(page.locator('.tray.open .none')).toHaveText('없음');
   await expect.poll(() => focusedIn(page, '.tray .cards')).toBe(true);
   await page.keyboard.press('Enter'); // 첫 카드 = 서윤
   await expect(page.locator('.tray.open')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '형태 연결: 서윤' })).toBeVisible();
+  const formChip = page.getByRole('button', { name: '형태 연결: 서윤' });
+  await expect(formChip).toBeVisible();
+
+  // 연결 모드 취소: Escape · 닫기 · 다른 슬롯 열기. 취소는 연결을 바꾸지 않는다
+  await enter(page, formChip);
+  await expect.poll(() => focusedIn(page, '.tray .cards')).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.tray.open')).toHaveCount(0);
+  await expect(formChip).toBeFocused();
+  await enter(page, formChip);
+  await enter(page, page.locator('.tray .shut'));
+  await expect(page.locator('.tray.open')).toHaveCount(0);
+  await enter(page, formChip);
+  await enter(page, page.getByRole('button', { name: /^높이 슬롯/ }));
+  await expect(page.locator('.tray.open')).toHaveCount(0);
+  expect((await getState(page)).draft.links.form).toBe('C01');
 
   // ★ 전동 높이 조절 → 없음
   await enter(page, page.getByRole('radio', { name: '전동 높이 조절' }));
@@ -63,7 +85,7 @@ test('키보드만으로 1라운드: 5슬롯·연결 → ★경고 → 테스트
 
   // 미리보기 레이어 z-order = DOM 순서
   const layers = await page.locator('.pv-art > *').evaluateAll((els) => els.map((e) => e.className));
-  expect(layers).toEqual(['pv-form', 'pv-part funcA', 'pv-part funcB', 'pv-mask material', 'pv-mask color']);
+  expect(layers).toEqual(['pv-form', 'pv-mask material', 'pv-mask color', 'pv-part funcA', 'pv-part funcB']);
   const mix = await page.locator('.pv-mask').evaluateAll((els) => els.map((e) => [getComputedStyle(e).mixBlendMode, getComputedStyle(e).maskImage || getComputedStyle(e).webkitMaskImage]));
   for (const [blend, mask] of mix) expect(blend).toBe('multiply'), expect(mask).toContain('desk-form-1.png');
 
@@ -110,6 +132,10 @@ test('키보드만으로 1라운드: 5슬롯·연결 → ★경고 → 테스트
   await page.keyboard.press('Enter');
   await expect(dlg).toHaveCount(0);
 
+  // 연출이 끝나면 큰 대사 패널 = 첫 부분·불만 NPC
+  const firstUnmet = s1.npcOrder.find((n) => s1.rounds[0].reactions[n] && s1.rounds[0].reactions[n] !== 'happy')!;
+  await expect(page.locator('.test-main .who')).toContainText(NPCS.find((n) => n.id === firstUnmet)!.name);
+
   // NPC 카드 Enter → 가운데 대사
   await enter(page, page.getByRole('button', { name: '서윤 불만' }));
   await expect(page.locator('.test-main')).toContainText('아래 수납 선반 때문에 더 불편해졌어요.');
@@ -136,6 +162,8 @@ test('키보드만으로 1라운드: 5슬롯·연결 → ★경고 → 테스트
   await expect(msg).toHaveText('부품을 하나 이상 바꿔요');
   await enter(page, go);
   expect(await stage(page)).toBe('revise');
+  // 1차에 고른 '없음' 은 그대로 '없음'
+  await expect(page.getByRole('button', { name: '높이 연결: 없음' })).toBeVisible();
   // ✗ 부품 표시
   await expect(page.locator('.srow', { hasText: '이동·수납' }).locator('.worse')).toHaveText(/서윤 불편/);
 
@@ -144,6 +172,8 @@ test('키보드만으로 1라운드: 5슬롯·연결 → ★경고 → 테스트
   await enter(page, page.getByRole('radio', { name: '잠금 바퀴' }));
   await expect(msg).toHaveText('부품을 바꿔서 연결을 지웠어요. 다시 이어 주세요');
   expect((await getState(page)).draft.links.funcB).toBeNull();
+  // 교체로 지워진 연결은 '없음' 이 아니라 '+ 연결'
+  await expect(page.getByRole('button', { name: '이동·수납 연결: + 연결' })).toBeVisible();
   await enter(page, page.locator('.tray .tcard', { hasText: '책상을 옮기기 힘들어' }));
   expect((await getState(page)).draft.links.funcB).toBe('C06');
   await expect(page.locator('.srow', { hasText: '이동·수납' }).locator('.worse')).toHaveCount(0);
@@ -243,4 +273,19 @@ test('마스크: 형태 바깥 픽셀 변화 0', async ({ page }) => {
   }, [before, after]);
   expect(r.inside).toBeGreaterThan(1000); // 레이어가 실제로 칠해졌다
   expect(r.outside).toBe(0);
+});
+
+test('판 글자: 맨 위 레이어·판 안, 그림 판엔 글자 없음', async ({ page }) => {
+  await toDesign(page, 'door');
+  for (const [slotId, n] of [['form', 1], ['funcA', 2], ['funcB', 2], ['material', 1], ['color', 2]] as const) await act(page, { type: 'setPart', slotId, partId: `door-${slotId}-${n}` });
+  const layers = await page.locator('.pv-art > *').evaluateAll((els) => els.map((e) => e.className));
+  expect(layers).toEqual(['pv-form', 'pv-mask material', 'pv-mask color', 'pv-part funcA', 'pv-part funcB', 'pv-text door']);
+  await expect(page.locator('.pv-text')).toHaveText('5학년 1반');
+  await page.evaluate(() => document.fonts.ready);
+  const t = (await page.locator('.pv-text span').boundingBox())!;
+  const plate = (await page.locator('.pv-part.funcB img').boundingBox())!;
+  expect(t.x).toBeGreaterThanOrEqual(plate.x);
+  expect(t.x + t.width).toBeLessThanOrEqual(plate.x + plate.width);
+  await act(page, { type: 'setPart', slotId: 'funcB', partId: 'door-funcB-3' }); // 책 그림 판
+  await expect(page.locator('.pv-text')).toHaveCount(0);
 });

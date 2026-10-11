@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { NPCS } from '../content/npcs';
-import type { NpcId } from '../content/types';
-import { REACT } from './Test';
+import type { NpcId, ReactionKind } from '../content/types';
 import { useGame } from './store';
+
+export const REACT: Record<ReactionKind, string> = { happy: '만족', partial: '부분', unhappy: '불만' };
 
 // 화면 8 입구: 바꾼 이유 = 직전 테스트의 부분·불만 NPC 하나(전원 만족이면 아무나). 고르면 조립대로 돌아간다
 export function Revise({ onCancel }: { onCancel: () => void }) {

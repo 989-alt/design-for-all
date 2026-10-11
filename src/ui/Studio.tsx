@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { NPCS } from '../content/npcs';
 import type { Part, SlotId } from '../content/types';
 import { partOf, SLOTS } from '../engine/judge';
@@ -20,18 +20,21 @@ export function Studio() {
   const [linking, setLinking] = useState<SlotId | null>(null);
   const [note, setNote] = useState('');
   const [warned, setWarned] = useState(false);
+  const parts = useRef<HTMLElement>(null);
 
   const pick = (slot: SlotId, p: Part) => {
-    const had = links[slot];
     if (slots[slot] !== p.id) {
+      // 부품이 바뀌면 그 슬롯의 연결은 지운다. setPart 앞에 보내야 칩이 '없음' 이 아닌 '+ 연결' 이 된다(Slot)
+      if (links[slot]) dispatch({ type: 'linkPart', slotId: slot, cardId: null });
       dispatch({ type: 'setPart', slotId: slot, partId: p.id });
-      // 부품이 바뀌면 그 슬롯의 연결은 지운다
-      if (had) {
-        dispatch({ type: 'linkPart', slotId: slot, cardId: null });
-        setNote('부품을 바꿔서 연결을 지웠어요. 다시 이어 주세요');
-      } else setNote('');
+      setNote(links[slot] ? '부품을 바꿔서 연결을 지웠어요. 다시 이어 주세요' : '');
     }
     setLinking(slot);
+  };
+  // 연결 모드 취소(닫기·Escape): 그 슬롯 연결 칩으로 포커스를 돌린다
+  const cancel = () => {
+    setLinking(null);
+    parts.current?.querySelector<HTMLElement>('.srow.now .chip-hit')?.focus();
   };
   const linked = () => {
     setLinking(null);
@@ -56,7 +59,7 @@ export function Studio() {
   const last = state.rounds[state.rounds.length - 1];
 
   return (
-    <div class={`stage studio${who ? ' revising' : ''}`}>
+    <div class={`stage studio${who ? ' revising' : ''}`} onKeyDown={(e) => e.key === 'Escape' && linking && cancel()}>
       <Hud />
       {who && (
         <p class="reason" role="status">
@@ -65,17 +68,17 @@ export function Studio() {
         </p>
       )}
       <Preview />
-      <section class="k-panel parts" aria-labelledby="parts-h">
+      <section class="k-panel parts" aria-labelledby="parts-h" ref={parts}>
         <div class="ph">
           <span id="parts-h" class="jua h">부품</span>
           <span class="sm">{filled}/5</span>
         </div>
         {SLOTS.map((s) => (
-          <Slot slot={s} now={now === s} onOpen={() => setNow(s)} onPick={(p) => pick(s, p)} onLink={() => (setNow(s), setLinking(s))} />
+          <Slot slot={s} now={now === s} onOpen={() => (setNow(s), setLinking(null))} onPick={(p) => pick(s, p)} onLink={() => (setNow(s), setLinking(s))} />
         ))}
       </section>
       <p class="studio-msg" aria-live="polite">{note || (block && BLOCK[block]) || ''}</p>
-      <LinkPanel slot={linking} onDone={linked}>
+      <LinkPanel slot={linking} onDone={linked} onClose={cancel}>
         <button class="k-btn coral go" aria-disabled={block ? 'true' : undefined} onClick={test}>
           <span class="lbl jua"><span>{state.rounds.length ? '다시 테스트' : '테스트하기'}</span></span>
         </button>
