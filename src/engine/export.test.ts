@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CASES } from '../content/cases';
 import type { CardId, NpcId, PartId } from '../content/types';
-import { exportResult } from './export';
+import { exportResult, firstCorrectCount } from './export';
 import { SLOTS } from './judge';
 import { initState, reduce } from './state';
 import type { Action } from './types';
@@ -31,7 +31,7 @@ describe('exportResult', () => {
     const r = exportResult(done);
     expect(Object.keys(r).sort()).toEqual([
       'collected', 'draft', 'feedback', 'log', 'npcOrder', 'product', 'reflect', 'refOrder', 'research',
-      'rounds', 'scores', 'seed', 'stage', 'startedAt', 'tags', 'v', 'verdict',
+      'rounds', 'scores', 'seed', 'stage', 'startedAt', 'tags', 'v', 'verdict', 'firstCorrect',
     ].sort());
     expect(Object.keys(r.scores!).sort()).toEqual(['access', 'beauty', 'eco', 'function', 'purpose', 'tech']);
     expect(Object.keys(r.verdict).sort()).toEqual(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S8', 'grade', 'passed']);
@@ -41,6 +41,14 @@ describe('exportResult', () => {
   it('JSON 왕복 뒤에도 같은 값', () => {
     const r = exportResult(done);
     expect(JSON.parse(JSON.stringify(r))).toEqual(r);
+  });
+
+  it('사례 첫 시도 정답 수 — 결과 화면과 같은 helper, verdict S4 와 같은 셈', () => {
+    expect(firstCorrectCount(done)).toBe(CASES.length);
+    expect(exportResult(done).firstCorrect).toBe(CASES.length);
+    const wrongFirst = CASES.reduce((s, c) => reduce(s, { type: 'tagCase', caseId: c.id, elementId: c.main === 'eco' ? 'beauty' : 'eco' }, 1).state,
+      reduce(initState(), { type: 'start', seed: 1 }, 1).state);
+    expect(firstCorrectCount(wrongFirst)).toBe(0);
   });
 
   it('테스트 전이면 scores 는 null', () => {

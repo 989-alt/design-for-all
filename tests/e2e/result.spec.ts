@@ -108,15 +108,21 @@ test('돌아보기 태그·칭찬 조립 → 결과 → PNG 저장 → 처음으
 test('중간 저장본 이어하기 → 같은 단계, 손상 저장본은 무시', async ({ page }) => {
   await toReflect(page);
   await page.getByRole('button', { name: '잘한 점: 기능성' }).click();
-  // 저장은 렌더 뒤 effect 에서 — 반영을 기다린 뒤 새로고침
-  await expect.poll(() => saved(page)).toContain('"good":["function"]');
+  // 저장은 거부되지 않은 액션 직후 동기 — 바로 들어 있다
+  expect(await saved(page)).toContain('"good":["function"]');
   await page.reload();
   await expect(page.getByRole('button', { name: '시작' })).toBeVisible();
   await page.getByRole('button', { name: '이어하기' }).click();
   await expect(page.getByRole('button', { name: '잘한 점: 기능성' })).toHaveAttribute('aria-pressed', 'true');
   expect((await getState(page)).stage).toBe('reflect');
 
-  for (const bad of ['{broken', JSON.stringify({ v: 9, state: {} }), JSON.stringify({ v: 1, state: { v: 1, stage: 'nope' } })]) {
+  // 판이 살아 있으면 pagehide 가 그 상태를 다시 저장한다 — 손상본은 타이틀(저장 안 함)에서 넣는다
+  await page.reload();
+  await expect(page.getByRole('button', { name: '시작' })).toBeVisible();
+  for (const bad of [
+    '{broken', JSON.stringify({ v: 9, state: {} }), JSON.stringify({ v: 1, state: { v: 1, stage: 'nope' } }),
+    JSON.stringify({ v: 1, state: { v: 1, stage: 'result', product: null, rounds: [] } }),
+  ]) {
     await page.evaluate((b) => localStorage.setItem('dfa.save.v1', b), bad);
     await page.reload();
     await expect(page.getByRole('button', { name: '시작' })).toBeVisible();

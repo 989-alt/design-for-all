@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { ELEMENTS } from '../content/elements';
 import { SAMPLES } from '../content/samples';
-import type { ElementId } from '../content/types';
+import type { ElementId, Sample } from '../content/types';
 import { reduce } from '../engine/state';
 import { Hud } from './Progress';
 import { advance, useGame } from './store';
@@ -11,8 +11,9 @@ type Draft = Record<string, { element?: ElementId; reason?: string }>;
 const kit = (id: string) => `./assets/kit/${id}.png`;
 const nameOf = (id: ElementId) => ELEMENTS.find((e) => e.id === id)!.name;
 const flip = (list: ElementId[], id: ElementId) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+const lineOf = (sm: Sample, element: ElementId, reason: string) => `${sm.title} — ${nameOf(element)}: ${reason} 좋아요.`;
 
-// 요소 칩: 고르면 체크 아이콘이 붙는다(색만으로 표시하지 않음)
+// 요소 칩: 고르면 요소 아이콘 옆에 체크 아이콘이 붙는다(색만으로 표시하지 않음)
 function Chip({ id, on, onClick, label }: { id: ElementId; on: boolean; onClick: () => void; label: string }) {
   const e = ELEMENTS.find((x) => x.id === id)!;
   return (
@@ -20,7 +21,8 @@ function Chip({ id, on, onClick, label }: { id: ElementId; on: boolean; onClick:
       <span class={`k-chip${on ? ' on' : ''}`}>
         <span class="lbl sm">
           <span>
-            <img class="icon" src={kit(on ? 'icon-check' : e.icon)} width={20} height={20} alt="" /> {e.name}
+            {on && <img class="icon" src={kit('icon-check')} width={20} height={20} alt="" />}
+            <img class="icon" src={kit(e.icon)} width={20} height={20} alt="" /> {e.name}
           </span>
         </span>
       </span>
@@ -35,7 +37,7 @@ export function Reflect() {
   const [draft, setDraft] = useState<Draft>(() =>
     Object.fromEntries(praise.map((p) => {
       const sm = SAMPLES.find((x) => x.id === p.sampleId)!;
-      return [p.sampleId, { element: p.element, reason: Object.values(sm.praise).find((r) => p.line.includes(r)) }];
+      return [p.sampleId, { element: p.element, reason: Object.values(sm.praise).find((r) => p.line === lineOf(sm, p.element, r)) }];
     })),
   );
 
@@ -45,7 +47,7 @@ export function Reflect() {
       type: 'reflect', good: g, fix: f,
       praise: SAMPLES.flatMap((sm) => {
         const { element, reason } = d[sm.id] ?? {};
-        return element && reason ? [{ sampleId: sm.id, element, line: `${sm.title} — ${nameOf(element)}: ${reason} 좋아요.` }] : [];
+        return element && reason ? [{ sampleId: sm.id, element, line: lineOf(sm, element, reason) }] : [];
       }),
     });
   const pick = (sampleId: string, patch: Draft[string]) => {
@@ -58,6 +60,7 @@ export function Reflect() {
   return (
     <div class="stage studio reflect">
       <Hud />
+      <div class="rbody">
       <section class="k-panel thin tags" aria-label="내 디자인 돌아보기">
         {([['잘한 점', good, (l: ElementId[]) => send(l, fix, draft)], ['아쉬운 점', fix, (l: ElementId[]) => send(good, l, draft)]] as const).map(([label, list, set]) => (
           <div class="tag-row" role="group" aria-label={label}>
@@ -97,6 +100,7 @@ export function Reflect() {
             </section>
           );
         })}
+      </div>
       </div>
     </div>
   );
