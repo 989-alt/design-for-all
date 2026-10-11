@@ -11,6 +11,6 @@ cpSync('assets/bgm', 'public/assets/bgm', { recursive: true, filter: (src) => !s
 if (existsSync('assets/sfx')) cpSync('assets/sfx', 'public/assets/sfx', { recursive: true });
 cpSync('assets/img/bg-classroom.png', 'public/assets/bg-classroom.png');
 cpSync('assets/img/keyart-title.png', 'public/assets/keyart-title.png');
-// 교실 장면: 저장소 루트의 시안 그림 → npcHitAreas.ts 의 CLASSROOM_ART. 없으면 cpSync 가 던져 빌드가 멈춘다
+// 교실 장면: assets/img/classroom-npcs.png → npcHitAreas.ts 의 CLASSROOM_ART. 없으면 cpSync 가 던져 빌드가 멈춘다
 mkdirSync('public/assets/scene', { recursive: true });
-cpSync('../시안/design-for-all/1-플랫-교실.png', 'public/assets/scene/classroom-npcs.png');
+cpSync('assets/img/classroom-npcs.png', 'public/assets/scene/classroom-npcs.png');
