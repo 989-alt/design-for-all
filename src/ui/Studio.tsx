@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { NPCS } from '../content/npcs';
 import type { Part, SlotId } from '../content/types';
 import { partOf, SLOTS } from '../engine/judge';
@@ -21,6 +21,8 @@ export function Studio() {
   const [note, setNote] = useState('');
   const [warned, setWarned] = useState(false);
   const parts = useRef<HTMLElement>(null);
+  // 부품 칸은 좁으면 스크롤된다 — 연 슬롯 줄(부품·칩)이 칸 안에 보이게. 연결 패널이 열리고 닫히면 칸 높이가 바뀐다
+  useEffect(() => parts.current?.querySelector('.srow.now')?.scrollIntoView({ block: 'nearest' }), [now, linking]);
 
   const pick = (slot: SlotId, p: Part) => {
     if (slots[slot] !== p.id) {
@@ -59,7 +61,7 @@ export function Studio() {
   const last = state.rounds[state.rounds.length - 1];
 
   return (
-    <div class={`stage studio${who ? ' revising' : ''}`} onKeyDown={(e) => e.key === 'Escape' && linking && cancel()}>
+    <div class={`stage studio bench${who ? ' revising' : ''}`} onKeyDown={(e) => e.key === 'Escape' && linking && cancel()}>
       <Hud />
       {who && (
         <p class="reason" role="status">

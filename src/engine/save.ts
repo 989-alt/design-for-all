@@ -44,6 +44,9 @@ const all = (a: unknown, ok: (x: any) => boolean) => arr(a) && a.every(ok);
 const rec = (o: unknown, ok: (k: string, v: unknown) => boolean) => obj(o) && Object.entries(o as object).every(([k, v]) => ok(k, v));
 const cardOrNull = (x: unknown) => x === null || of(CARD)(x);
 const optNpc = (x: unknown) => x === undefined || of(NPC)(x);
+const uniq = (a: unknown[]) => new Set(a).size === a.length;
+// 순서 배열은 콘텐츠 전체의 순열 — 비거나 겹치면 화면에서 고를 것이 사라진다
+const perm = (a: unknown[], set: Set<string>) => a.length === set.size && uniq(a) && a.every(of(set));
 
 const contentOk = (s: GameState) => {
   const slots = (o: unknown) => rec(o, (k, v) => of(PART)(v) && (v as string).startsWith(`${s.product}-${k}-`));
@@ -51,8 +54,8 @@ const contentOk = (s: GameState) => {
   const byNpc = (o: unknown, ok: (v: unknown) => boolean) => rec(o, (k, v) => NPC.has(k) && ok(v));
   return typeof s.seed === 'number'
     && all(s.tags, (t) => obj(t) && of(CASE)(t.caseId) && all(t.tried, of(ELEM)) && typeof t.correct === 'boolean')
-    && all(s.collected, of(CARD)) && all(s.npcOrder, of(NPC)) && all(s.refOrder, of(REF))
-    && all(s.research, (r) => obj(r) && of(REF)(r.refId) && cardOrNull(r.cardId))
+    && all(s.collected, of(CARD)) && uniq(s.collected) && perm(s.npcOrder, NPC) && perm(s.refOrder, REF)
+    && all(s.research, (r) => obj(r) && of(REF)(r.refId) && cardOrNull(r.cardId)) && s.research.length <= 2 && uniq(s.research.map((r) => r.refId))
     && all(s.feedback, (x) => x === 'bus' || x === 'tech')
     && all(s.log, (l) => obj(l) && typeof l.e === 'string' && (!['part', 'link'].includes(l.e) || obj(l.d))) // Slot 이 d.slotId 를 읽는다
     && slots(s.draft.slots) && links(s.draft.links) && optNpc(s.draft.reason)

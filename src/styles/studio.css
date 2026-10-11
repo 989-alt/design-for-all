@@ -4,14 +4,12 @@
 .face{display:inline-block;object-fit:contain;vertical-align:middle;width:32px;height:32px}
 .react{font-weight:700} .react.happy{color:var(--reaction-happy)} .react.partial{color:var(--reaction-partial)} .react.unhappy{color:var(--reaction-unhappy)}
 
-/* 6 조립대: 미리보기 440 + 부품 792 + 하단 트레이. 수정 중엔 위에 바꾼 이유 한 줄만큼 내린다 */
-.preview{position:absolute;left:16px;top:104px;width:440px;height:500px;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
-.parts{position:absolute;left:472px;top:104px;width:792px;height:500px}
-.revising .preview,.revising .parts{top:132px;height:472px}
-html[data-text=large] .studio .preview,html[data-text=large] .studio .parts{height:484px}
-html[data-text=large] .studio.revising .preview,html[data-text=large] .studio.revising .parts{height:456px}
-html[data-text=large] .studio-msg{top:588px;height:20px;line-height:20px}
-.reason{position:absolute;left:16px;top:92px;width:1248px;height:36px;margin:0;display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 6 조립대: 무대를 grid 로 — 바꾼 이유 / 미리보기 440 + 부품 / 안내 한 줄 / 트레이. 트레이가 자라면 본문이 줄고, 넘치는 부품은 스크롤 */
+.bench{display:grid;grid-template-columns:440px 1fr;grid-template-rows:auto minmax(0,1fr) auto auto;column-gap:16px;padding:104px 16px 16px}
+.bench.revising{padding-top:92px}
+.preview{grid-column:1;grid-row:2;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.parts{grid-column:2;grid-row:2;overflow-y:auto}
+.reason{grid-column:1/-1;grid-row:1;height:36px;margin:0 0 4px;display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .reason b{color:var(--accent-text);font-size:var(--text-lg)}
 
 .pv-art{position:relative;height:100%;aspect-ratio:1;justify-self:center;background:var(--surface-slot);border-radius:var(--radius-md);isolation:isolate}
@@ -44,9 +42,10 @@ html[data-text=large] .studio-msg{top:588px;height:20px;line-height:20px}
 .opts .k-btn,.tray .none{height:48px;border-width:15px 19px 21px 15px;border-image-width:15px 19px 21px 15px}
 .opts .k-btn{width:100%;font-size:var(--text-sm)}
 
-.studio-msg{position:absolute;right:16px;top:606px;height:28px;margin:0;font-weight:700;color:var(--accent-text);font-size:var(--text-sm)}
-/* 카드 2줄 × 2행이 들어가게 아래에 붙은 채 위로 자란다(가 크게면 패널을 줄여 자리를 낸다) */
-.tray{position:absolute;left:16px;bottom:16px;width:1248px;min-height:148px;display:grid;grid-template-columns:72px 1fr 200px;align-items:center;gap:12px}
+.studio-msg{grid-column:1/-1;grid-row:3;justify-self:end;height:28px;margin:0;font-weight:700;color:var(--accent-text);font-size:var(--text-sm)}
+html[data-text=large] .studio-msg{height:20px;line-height:20px}
+/* 카드 2줄 × 2행이 들어가게 맨 아래 줄에서 위로 자란다 */
+.tray{grid-column:1/-1;grid-row:4;min-height:148px;display:grid;grid-template-columns:72px 1fr 200px;align-items:center;gap:12px}
 .tray .th{font-size:var(--text-lg);line-height:1.15}
 .tray.open .th{color:var(--accent-text)}
 .tray .cards{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:4px 8px}

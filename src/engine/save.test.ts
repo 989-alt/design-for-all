@@ -100,6 +100,37 @@ describe('save', () => {
     }
   });
 
+  // QA r2 #1: 순서 배열이 비거나 겹치면 고를 NPC·참고 카드가 사라져 진행이 막힌다
+  const rejects = (bad: object) => {
+    mem.set(SAVE_KEY, JSON.stringify({ v: 1, state: bad }));
+    expect(load(), JSON.stringify(bad).slice(0, 120)).toBeNull();
+  };
+  const ok = (): GameState => ({ ...finished(), stage: 'research' });
+
+  it('refOrder 가 빈 배열·중복·일부만이면 null', () => {
+    const ids = ok().refOrder;
+    for (const refOrder of [[], [ids[0], ids[0]], ids.slice(1), [...ids.slice(1), ids[1]]]) rejects({ ...ok(), refOrder });
+  });
+
+  it('npcOrder 가 빈 배열·중복·일부만이면 null', () => {
+    const ids = ok().npcOrder;
+    for (const npcOrder of [[], [ids[0], ids[0]], ids.slice(1), [...ids.slice(1), ids[1]]]) rejects({ ...ok(), npcOrder });
+  });
+
+  it('collected 중복이면 null', () => rejects({ ...ok(), collected: ['C01', 'C01'] }));
+
+  it('research 같은 참고 카드 중복·3장 이상이면 null', () => {
+    const [a, b, c] = ok().refOrder;
+    rejects({ ...ok(), research: [{ refId: a, cardId: null }, { refId: a, cardId: null }] });
+    rejects({ ...ok(), research: [a, b, c].map((refId) => ({ refId, cardId: null })) });
+  });
+
+  it('순서 배열이 다른 순열이어도 정상 저장본은 돌려준다', () => {
+    const s: GameState = { ...ok(), npcOrder: ok().npcOrder.slice().reverse(), refOrder: ok().refOrder.slice().reverse(), collected: ['C01', 'C04'], research: [{ refId: ok().refOrder[0], cardId: 'C01' }] };
+    save(s);
+    expect(load()).toEqual(s);
+  });
+
   it('저장소가 막혀도 clear 는 던지지 않는다', () => {
     const rm = localStorage.removeItem;
     localStorage.removeItem = () => { throw new DOMException('blocked', 'SecurityError'); };
