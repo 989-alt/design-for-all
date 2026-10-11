@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig, type Plugin } from 'vite';
 import preact from '@preact/preset-vite';
 
@@ -12,6 +13,7 @@ const classicScript: Plugin = {
 export default defineConfig({
   base: './',
   plugins: [preact(), classicScript],
+  test: { include: ['src/**/*.test.ts'] },
   build: {
     modulePreload: false,
     cssCodeSplit: false,
