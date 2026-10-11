@@ -16,8 +16,8 @@ test('무대 레터박스·버튼 실측·콘솔 에러 0', async ({ page }) => 
 
   await page.setViewportSize({ width: 1280, height: 800 });
   // resize 반영(scale=1)을 기다린 뒤 높이를 잰다
-  await expect.poll(async () => (await page.locator('.k-btn').boundingBox())!.height).toBeCloseTo(64, -1);
-  const btn = (await page.locator('.k-btn').boundingBox())!;
+  await expect.poll(async () => (await page.locator('.k-btn.coral').boundingBox())!.height).toBeCloseTo(64, -1);
+  const btn = (await page.locator('.k-btn.coral').boundingBox())!;
   expect(Math.abs(btn.height - 64)).toBeLessThanOrEqual(1);
 
   expect(errors).toEqual([]);

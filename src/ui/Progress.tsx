@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { reduce } from '../engine/state';
 import type { Reject, Stage } from '../engine/types';
 import type { ComponentChildren } from 'preact';
+import { Audio } from './Audio';
 import { applyPref, readPref } from './pref';
 import { advance, useGame } from './store';
 
@@ -29,6 +30,7 @@ export function Hud() {
   ];
   return (
     <header class="hud k-hud" aria-label="진행">
+      <Audio />
       <div class="hud-in">
         <h1 class="jua title">모두의 교실 디자인 스튜디오</h1>
         <nav class="steps" aria-label="디자인 과정">

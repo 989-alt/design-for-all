@@ -5,6 +5,7 @@ import { PRODUCTS } from '../content/products';
 import type { NpcId, ReactionKind } from '../content/types';
 import { partOf, SLOTS, techMiss } from '../engine/judge';
 import { reduce } from '../engine/state';
+import { playSfx } from './Audio';
 import { Feedback } from './Feedback';
 import { Hud } from './Progress';
 import { REACT, Revise } from './Revise';
@@ -29,7 +30,7 @@ export function Test() {
 
   useEffect(() => {
     if (shown >= tested.length) return;
-    const t = setTimeout(() => setShown(shown + 1), STEP_MS);
+    const t = setTimeout(() => (playSfx(`sfx-${round.reactions[tested[shown]]!}`), setShown(shown + 1)), STEP_MS);
     return () => clearTimeout(t);
   }, [shown]);
 
