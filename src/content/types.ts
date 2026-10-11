@@ -63,6 +63,7 @@ export interface CaseCard {
   sub: ElementId[];
   back: string;
   assetId: string;
+  bus?: true; // 저상 버스 사례(S4 필수 정답)
 }
 
 export type RefKind = 'popular' | 'original' | 'mobility' | 'tech';

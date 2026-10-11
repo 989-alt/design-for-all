@@ -34,7 +34,8 @@ function randomGame(seed: number, product: ProductId): GameState {
     act({ type: 'talk', npcId: npc });
     const left = CARDS.filter((c) => c.npc === npc && !s.collected.includes(c.id));
     if (left.length) act({ type: 'takeCard', cardId: pick(left).id });
-    act({ type: 'nextStage' });
+    // 판정 D1: 고를 제품의 카드가 없으면 pick 을 못 지나가니, 그 카드를 1장 이상 모은 뒤에 교실을 나간다
+    if (s.collected.some((c) => CARDS.find((x) => x.id === c)!.product === product)) act({ type: 'nextStage' });
   }
   act({ type: 'pickProduct', productId: product });
   act({ type: 'nextStage' });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CARDS, WORSE_LINE } from './cards';
 import { CASES } from './cases';
 import { ELEMENTS } from './elements';
-import { COSMETIC_LINE, FEEDBACK } from './feedback';
+import { COSMETIC_PREFIX, FEEDBACK } from './feedback';
 import { HARMONY } from './harmony';
 import { NPCS } from './npcs';
 import { MATERIAL_NOTE, PRODUCTS } from './products';
@@ -142,6 +142,7 @@ describe('카드', () => {
       for (const s of c.sub) expect(els).toContain(s);
       expect(c.back.length).toBeGreaterThanOrEqual(40);
     }
+    expect(CASES.filter((c) => c.bus).map((c) => c.id)).toEqual(['case-07']);
   });
 
   it('샘플 2, 피드백 2, 요소 6', () => {
@@ -166,7 +167,7 @@ describe('문장', () => {
     ...CARDS.flatMap((c) => [c.where, c.what, ...Object.values(c.reactions)]),
     WORSE_LINE,
     MATERIAL_NOTE,
-    COSMETIC_LINE,
+    ...CARDS.map((c) => COSMETIC_PREFIX + c.reactions.unhappy),
     ...CASES.flatMap((c) => [c.title, ...c.back.split('. ')]),
     ...REFERENCES.flatMap((r) => [r.title, r.desc]),
     ...SAMPLES.flatMap((s) => [s.title, s.desc, ...Object.values(s.praise)]),

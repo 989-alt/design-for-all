@@ -21,8 +21,14 @@ export function Classroom() {
       <Hud />
       {NPC_HIT_AREAS.map((h) => {
         const n = NPCS.find((x) => x.id === h.id)!;
+        const all = CARDS.filter((c) => c.npc === h.id).every((c) => state.collected.includes(c.id));
         return (
-          <button class="npc-hit" style={{ left: h.x, top: h.y, width: h.w, height: h.h }} aria-label={`${n.name} · ${n.trait}`} aria-pressed={who === h.id} onClick={() => talk(h.id)} />
+          <button class="npc-hit" style={{ left: h.x, top: h.y, width: h.w, height: h.h }} aria-label={`${n.name} · ${n.trait}${all ? ' · 카드 다 받음' : ''}`} aria-pressed={who === h.id} onClick={() => talk(h.id)}>
+            {/* 이름표: 발밑, 카드를 다 받으면 체크 */}
+            <span class="k-chip npc-tag" aria-hidden="true">
+              <span class="lbl jua"><span>{all && <img class="icon" src="./assets/kit/icon-check.png" width={18} height={18} alt="" />}{n.name}</span></span>
+            </span>
+          </button>
         );
       })}
       <Next cls="counter">

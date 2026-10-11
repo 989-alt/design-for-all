@@ -39,6 +39,7 @@ function cardLine(card: TroubleCard, fx: CardFx): string {
 export interface Reaction {
   kind: ReactionKind;
   line: string; // 가장 나쁜 카드의 문장
+  card: CardId; // 그 가장 나쁜 카드
   worse?: PartId;
 }
 
@@ -52,7 +53,7 @@ export function react(product: ProductId, slots: Record<SlotId, PartId>): Partia
     const kind: ReactionKind = fx.some((f) => f.status === 'worse') || fx.every((f) => f.status === 'none')
       ? 'unhappy'
       : fx.every((f) => f.status === 'full') ? 'happy' : 'partial';
-    out[npc] = { kind, line: cardLine(cards[worst], fx[worst]) };
+    out[npc] = { kind, line: cardLine(cards[worst], fx[worst]), card: cards[worst].id };
     if (fx[worst].status === 'worse') out[npc]!.worse = fx[worst].part!.id;
   }
   return out;

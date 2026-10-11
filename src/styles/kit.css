@@ -19,12 +19,12 @@
 .k-fill{border:7px solid transparent;border-image:url(/assets/kit/gauge-fill.png) 48 fill / 7px stretch;height:14px}
 /* .sm 라벨 */
 .sm{font-size:var(--text-sm);font-weight:700;color:var(--muted-foreground)}
-.k-tool{width:64px;font-size:14px} .k-tool .sm{font-size:14px} .k-tool.on .sm{color:var(--primary-foreground)}
+.k-tool{width:64px;font-size:calc(var(--text-sm) * .875)} .k-tool .sm{font-size:calc(var(--text-sm) * .875)} .k-tool.on .sm{color:var(--primary-foreground)}
 /* 글자는 면 중심 절대 배치 */
 .lbl{position:relative;display:block}
 .lbl>span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;line-height:1}
 .k-btn .lbl>span{top:calc(50% - 2px)}
-.k-step-now .lbl>span{top:calc(50% + 1px);font-size:17px}
+.k-step-now .lbl>span{top:calc(50% + 1px);font-size:calc(var(--text-sm) * 1.0625)}
 button{all:unset;box-sizing:border-box;cursor:pointer;display:block}
 /* 키보드로 닿는 것 전부(스크롤 상자 포함)에 같은 링 */
 html :focus-visible{outline:none;box-shadow:var(--shadow-focus)}

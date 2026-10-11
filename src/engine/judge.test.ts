@@ -22,7 +22,7 @@ describe('반응 판정 — 그 제품 카드가 없는 NPC 는 제외', () => {
 describe('반응 판정 — full → happy, 일부·partial → partial, 없음·worse → unhappy', () => {
   it('책상 F4+A3 에서 N1 unhappy(F4) — A3 가 C01 을 풀어도 ✗ 가 이긴다', () => {
     const r = react('desk', build('desk', [4, 3, 1, 1, 1]));
-    expect(r.seoyun).toEqual({ kind: 'unhappy', line: WORSE_LINE.replace('{part}', '책상+의자 일체형'), worse: 'desk-form-4' });
+    expect(r.seoyun).toEqual({ kind: 'unhappy', line: WORSE_LINE.replace('{part}', '책상+의자 일체형'), worse: 'desk-form-4', card: 'C01' });
     expect(r.dohyun!.kind).toBe('happy');
   });
   it('전원 만족 조합 — 책상 F2 A3 B3 M3 K2', () => {
@@ -32,15 +32,15 @@ describe('반응 판정 — full → happy, 일부·partial → partial, 없음�
   });
   it('partial 효과만 → partial (사물함 회전식 원형 → 서윤 C02)', () => {
     const r = react('locker', build('locker', [3, 1, 1, 1, 1]));
-    expect(r.seoyun).toEqual({ kind: 'partial', line: line('C02', 'partial') });
+    expect(r.seoyun).toEqual({ kind: 'partial', line: line('C02', 'partial'), card: 'C02' });
   });
   it('효과 없음 → unhappy, 문장은 unhappy', () => {
     const r = react('locker', build('locker', [1, 1, 1, 1, 1]));
-    expect(r.seoyun).toEqual({ kind: 'unhappy', line: line('C02', 'unhappy') });
+    expect(r.seoyun).toEqual({ kind: 'unhappy', line: line('C02', 'unhappy'), card: 'C02' });
   });
   it('일부 full → partial, 대표 줄은 손대지 않은 카드의 unhappy 문장 (할머니 문: C15 full, C16 없음)', () => {
     const r = react('door', build('door', [1, 2, 1, 1, 3]));
-    expect(r.grandma).toEqual({ kind: 'partial', line: line('C16', 'unhappy') });
+    expect(r.grandma).toEqual({ kind: 'partial', line: line('C16', 'unhappy'), card: 'C16' });
   });
   it('full 이 partial 보다 우선 (문 B3 C11 partial + K2 C11 full → 지안 happy)', () => {
     expect(react('door', build('door', [1, 1, 3, 1, 2])).jian!.kind).toBe('happy');

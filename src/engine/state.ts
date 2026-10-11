@@ -2,7 +2,7 @@
 import { CARDS } from '../content/cards';
 import { CASES } from '../content/cases';
 import { ELEMENTS } from '../content/elements';
-import { COSMETIC_LINE } from '../content/feedback';
+import { COSMETIC_PREFIX } from '../content/feedback';
 import { NPCS } from '../content/npcs';
 import { PRODUCTS } from '../content/products';
 import { REFERENCES } from '../content/references';
@@ -65,7 +65,11 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
         const npcs = new Set(CARDS.filter((c) => s.collected.includes(c.id)).map((c) => c.npc));
         return s.collected.length >= 4 && npcs.size >= 3 ? go('pick') : no('need_more_cards');
       }
-      if (at('pick')) return s.product ? go('research') : no('no_product');
+      if (at('pick')) {
+        if (!s.product) return no('no_product');
+        // 고른 제품의 불편 카드가 없으면 조사에서 이을 카드가 없어 막힌다(판정 D1)
+        return CARDS.some((c) => c.product === s.product && s.collected.includes(c.id)) ? go('research') : no('no_product_cards');
+      }
       if (at('research')) return s.research.length === 2 && s.research.every((r) => r.cardId) ? go('design') : no('need_two_refs');
       if (at('test')) return s.rounds.length >= 2 ? go('reflect') : no('need_revise');
       return no('wrong_stage');
@@ -91,8 +95,6 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
     case 'pickProduct': {
       if (!at('pick')) return no('wrong_stage');
       if (!own(PRODUCTS, a.productId)) return no('unknown_id');
-      // 허용하되 경고 — S6 이 잡는다
-      if (!CARDS.some((c) => c.product === a.productId && s.collected.includes(c.id))) log('no_cards_for_product', a.productId);
       log('product', a.productId);
       return done({ product: a.productId });
     }
@@ -150,7 +152,7 @@ export function reduce(s: GameState, a: Action, now = 0): Step {
       if (prev && cosmeticOnly(prev, slots, satisfied)) {
         log('cosmetic_only');
         // ✗ 부품 지목 줄(§4.3)이 우선
-        for (const n of npcs) if (reactions[n] !== 'happy' && !worse[n]) lines[n] = COSMETIC_LINE;
+        for (const n of npcs) if (reactions[n] !== 'happy' && !worse[n]) lines[n] = COSMETIC_PREFIX + CARDS.find((c) => c.id === r[n]!.card)!.reactions.unhappy;
       }
       const round: Round = { slots, links, reactions, lines, satisfied, worse };
       if (s.draft.reason) round.reason = s.draft.reason;

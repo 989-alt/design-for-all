@@ -66,6 +66,7 @@ export type Reject =
   | 'already_collected'
   | 'need_more_cards'
   | 'no_product'
+  | 'no_product_cards'
   | 'two_refs_max'
   | 'ref_not_picked'
   | 'not_collected'

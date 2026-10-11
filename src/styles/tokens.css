@@ -1,4 +1,4 @@
-/* tokens.json 에서 생성 (themes.flat-studio + 공통). 변수명 = 경로를 '-' 로 이은 것. hex 는 이 파일에만 둔다. */
+/* 손 관리: tokens.json(themes.flat-studio·high-contrast + 공통)의 값을 옮겨 적는다(생성기 없음). 변수명 = 경로를 '-' 로 이은 것. hex 는 이 파일에만 둔다. */
 :root{
   --size-tap-min:48px;
   --size-stage-w:1280px;
@@ -34,7 +34,7 @@
   --radius-lg:22px;
   --shadow-card:0 4px 0 #1B2A41, 0 8px 16px rgba(27,42,65,.18);
   --shadow-press:0 2px 0 #1B2A41;
-  --shadow-focus:0 0 0 4px #FFFFFF, 0 0 0 8px #C8441B;
+  --shadow-focus:0 0 0 4px #FFFFFF, 0 0 0 8px var(--ring);
   --background:#FFF8EC;
   --foreground:#1B2A41;
   --card:#FFFFFF;

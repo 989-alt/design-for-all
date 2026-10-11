@@ -13,18 +13,24 @@ export function save(s: GameState) {
   }
 }
 
-// 돌아보기·결과 화면이 읽는 필드가 다 있어야 그 단계로 복원한다
-const finishedOk = (s: GameState) =>
-  !!s.product && s.product in PRODUCTS && Array.isArray(s.rounds) && s.rounds.length >= 1
-  && s.rounds.every((r) => r?.slots && r.worse && typeof r.satisfied === 'number')
-  && ['good', 'fix', 'praise'].every((k) => Array.isArray(s.reflect?.[k as 'good']))
-  && Array.isArray(s.tags) && Array.isArray(s.collected) && Array.isArray(s.log);
+const arr = Array.isArray;
+const obj = (o: unknown) => !!o && typeof o === 'object';
+const at = (s: GameState, from: Stage) => STAGES.indexOf(s.stage) >= STAGES.indexOf(from);
+
+// 어느 단계든 화면들이 읽는 필드가 다 있어야 그 단계로 복원한다. 조사부터는 제품, 테스트부터는 라운드 1개 이상
+const shapeOk = (s: GameState) =>
+  [s.tags, s.collected, s.log, s.npcOrder, s.refOrder, s.research, s.feedback, s.rounds].every(arr)
+  && obj(s.draft) && obj(s.draft.slots) && obj(s.draft.links)
+  && s.rounds.every((r) => obj(r) && obj(r.slots) && obj(r.links) && obj(r.reactions) && obj(r.lines) && obj(r.worse) && typeof r.satisfied === 'number')
+  && ['good', 'fix', 'praise'].every((k) => arr(s.reflect?.[k as 'good']))
+  && (!at(s, 'research') || (typeof s.product === 'string' && Object.prototype.hasOwnProperty.call(PRODUCTS, s.product)))
+  && (!at(s, 'test') || s.rounds.length >= 1);
 
 export function load(): GameState | null {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) ?? 'null');
     if (s?.v !== 1 || s.state?.v !== 1 || !STAGES.includes(s.state.stage)) return null;
-    return s.state.stage !== 'reflect' && s.state.stage !== 'result' || finishedOk(s.state) ? s.state : null;
+    return shapeOk(s.state) ? s.state : null;
   } catch {
     return null;
   }

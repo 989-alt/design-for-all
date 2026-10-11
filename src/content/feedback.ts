@@ -1,8 +1,8 @@
 import type { Feedback } from './types';
 
 // PRD §6 오개념 피드백: M1 저상 버스, M3 첨단 연결
-// PRD §6 M2: 색·형태만 바꾸고 만족 수 변동 0 일 때 NPC 가 말함
-export const COSMETIC_LINE = '색은 예쁜데 아직 무거워요.';
+// PRD §6 M2: 색·형태만 바꾸고 만족 수 변동 0 일 때 NPC 가 말함. 뒤에 그 NPC 의 가장 나쁜 카드 불만 문장을 붙인다
+export const COSMETIC_PREFIX = '색은 예쁜데 ';
 
 export const FEEDBACK: Feedback[] = [
   {
@@ -10,6 +10,7 @@ export const FEEDBACK: Feedback[] = [
     lines: [
       '계단을 없앤 버스는 휠체어를 탄 사람도, 무릎 아픈 어르신도 모두 편해요.',
       '서윤이만 편한가요, 하은이도 편한가요?',
+      '이렇게 모두가 편한 디자인을 모두를 위한 디자인(유니버설 디자인)이라고 해요.',
     ],
   },
   {

@@ -17,7 +17,7 @@ export function Revise({ onCancel }: { onCancel: () => void }) {
   const ok = (n: NpcId) => (unmet.length ? unmet : tested).includes(n);
   return (
     <section class="k-panel revise" aria-labelledby="rv-h">
-      <h2 id="rv-h" class="jua">누구의 불편부터 고칠까요?</h2>
+      <h2 id="rv-h" class="jua">{unmet.length ? '누구의 불편부터 고칠까요?' : '모두 만족했어요! 누구를 위해 더 다듬어 볼까요?'}</h2>
       <div class="rv-list" role="radiogroup" aria-labelledby="rv-h" ref={ref}>
         {tested.map((id) => {
           const n = NPCS.find((x) => x.id === id)!;

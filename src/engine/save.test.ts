@@ -51,6 +51,35 @@ describe('save', () => {
     expect(load()?.stage).toBe('reflect');
   });
 
+  it('모든 단계: 공통 필드가 빠지면 null, 조사부터 제품·테스트부터 라운드 필요', () => {
+    for (const stage of ['cases', 'classroom', 'pick', 'research', 'design', 'test', 'revise', 'reflect', 'result'] as const) {
+      const ok = { ...finished(), stage };
+      save(ok);
+      expect(load()?.stage, stage).toBe(stage);
+      for (const bad of [
+        { ...ok, collected: null },
+        { ...ok, npcOrder: undefined },
+        { ...ok, research: {} },
+        { ...ok, draft: { slots: {} } },
+        { ...ok, rounds: [{ ...round, reactions: undefined }] },
+        { ...ok, reflect: undefined },
+      ]) {
+        mem.set(SAVE_KEY, JSON.stringify({ v: 1, state: bad }));
+        expect(load(), `${stage} ${JSON.stringify(bad).slice(0, 60)}`).toBeNull();
+      }
+    }
+    for (const stage of ['research', 'design'] as const) {
+      mem.set(SAVE_KEY, JSON.stringify({ v: 1, state: { ...started(), stage, product: 'toString' } }));
+      expect(load(), stage).toBeNull();
+    }
+    for (const stage of ['test', 'revise'] as const) {
+      mem.set(SAVE_KEY, JSON.stringify({ v: 1, state: { ...started(), stage, product: 'desk' } }));
+      expect(load(), stage).toBeNull();
+    }
+    save({ ...started(), stage: 'pick' });
+    expect(load()?.stage).toBe('pick');
+  });
+
   it('저장이 막혀도(용량 초과) 던지지 않는다', () => {
     const set = localStorage.setItem;
     localStorage.setItem = () => { throw new Error('QuotaExceededError'); };

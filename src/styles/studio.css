@@ -32,6 +32,7 @@ html[data-text=large] .studio-msg{top:588px;height:20px;line-height:20px}
 .srow{display:grid;grid-template-columns:150px 1fr auto;align-items:center;gap:12px;min-height:50px;border-bottom:2px solid var(--muted)}
 .srow.now{grid-template-columns:150px 1fr;gap:6px 12px;background:var(--secondary);border-radius:var(--radius-md);padding:6px 10px;margin:4px 0;border-bottom:0}
 .srow.now .opts{grid-column:1/-1;grid-row:2}
+.srow.now .mnote{grid-column:1/-1;grid-row:3;margin:0}
 .sname{display:flex;align-items:center;gap:8px;font-weight:700;border-radius:var(--radius-md)}
 .part{font-size:var(--text-lg);line-height:1.1}
 .chips{display:flex;gap:6px;align-items:center;justify-content:flex-end}
@@ -68,6 +69,8 @@ html[data-text=large] .studio-msg{top:588px;height:20px;line-height:20px}
 .test-num .big{font-family:var(--font-display);font-size:var(--text-3xl);line-height:1}
 .test-num .big b{color:var(--accent-text);font-weight:400}
 .test-num .sub{font-weight:700}
+.test-num .since{display:grid;gap:4px;margin-top:8px;font-weight:700}
+.test-num .since b{color:var(--accent-text)}
 .test-btns{position:absolute;left:16px;bottom:16px;width:1248px;height:96px;display:flex;justify-content:flex-end;align-items:center;gap:12px}
 
 /* 8 수정: 바꾼 이유 고르기 */
@@ -76,7 +79,7 @@ html[data-text=large] .studio-msg{top:588px;height:20px;line-height:20px}
 .rv-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
 .rv{display:grid;grid-template-columns:48px auto auto 1fr;align-items:center;gap:8px;min-height:64px;padding:2px 8px;font-size:var(--text-sm);color:var(--cardkind-trouble-foreground)}
 .rv[aria-disabled=true]{opacity:.55;cursor:not-allowed}
-.rv .line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv .line{line-height:1.25}
 .rv-btns{display:flex;justify-content:flex-end;gap:12px}
 
 /* 피드백 모달 */

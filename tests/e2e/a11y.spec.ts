@@ -259,6 +259,12 @@ test('포커스 링: 키보드로 닿은 요소에 --shadow-focus, 모달 트랩
     await page.keyboard.press('Escape');
   }
   await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('.test-in')), { message: '모달을 닫으면 포커스가 뒤 화면으로 돌아와야 한다' }).toBe(true);
+
+  // 수정 패널: 열면 안으로, 닫기로 닫으면 「수정하러 가기」로 돌아온다
+  await press(page, named(page, 'button', '수정하러 가기'));
+  await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('.revise'))).toBe(true);
+  await press(page, named(page, 'button', '닫기'));
+  await expect.poll(() => page.evaluate(() => document.activeElement?.textContent?.trim())).toBe('수정하러 가기');
 });
 
 // 글자가 자기 틀(패널·버튼·칩, 스크롤 상자는 가로만)을 넘으면 그 문구를 돌려준다

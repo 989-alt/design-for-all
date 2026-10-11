@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CASES } from '../content/cases';
-import { WORSE_LINE } from '../content/cards';
-import { COSMETIC_LINE } from '../content/feedback';
+import { CARDS, WORSE_LINE } from '../content/cards';
+import { COSMETIC_PREFIX } from '../content/feedback';
+import { PRODUCTS } from '../content/products';
 import type { CardId, NpcId, PartId, ProductId, SlotId } from '../content/types';
-import { SLOTS } from './judge';
+import { react, SLOTS } from './judge';
 import { initState, reduce } from './state';
-import type { Action, GameState } from './types';
+import type { Action, GameState, Round } from './types';
 
 const play = (s: GameState, ...acts: Action[]) =>
   acts.reduce((st, a) => {
@@ -82,14 +83,13 @@ describe('진행 조건 — classroom→pick 은 카드 ≥4 ∧ NPC ≥3', () =
   });
 });
 
-describe('제품 선택 후 해당 제품 카드 0장', () => {
-  it("허용하되 로그 'no_cards_for_product'", () => {
+describe('제품 선택 후 해당 제품 카드 0장 (판정 D1)', () => {
+  it("고르기는 되지만 다음은 거부 'no_product_cards', 다른 제품을 고르면 진행", () => {
     const s = play(collect(toClassroom(), DESK), { type: 'nextStage' });
-    const r = reduce(s, { type: 'pickProduct', productId: 'door' });
-    expect(r.rejected).toBeUndefined();
-    expect(r.state.product).toBe('door');
-    expect(r.effects!.map((e) => e.e)).toContain('no_cards_for_product');
-    expect(reduce(s, { type: 'pickProduct', productId: 'desk' }).effects!.map((e) => e.e)).not.toContain('no_cards_for_product');
+    const door = play(s, { type: 'pickProduct', productId: 'door' });
+    expect(door.product).toBe('door');
+    expect(reduce(door, { type: 'nextStage' }).rejected).toBe('no_product_cards');
+    expect(reduce(play(door, { type: 'pickProduct', productId: 'desk' }), { type: 'nextStage' }).state.stage).toBe('research');
     expect(reduce(s, { type: 'pickProduct', productId: 'toString' as ProductId }).rejected).toBe('unknown_id');
   });
 });
@@ -166,15 +166,15 @@ describe('수정 강제·상한·이유', () => {
 });
 
 describe('M2 신호 — 색·형태만 바꾸고 satisfied 변동 0', () => {
-  it("log 'cosmetic_only' + 불만·부분 NPC 대표 줄 COSMETIC_LINE", () => {
+  it("log 'cosmetic_only' + 불만·부분 NPC 대표 줄 = '색은 예쁜데 ' + 가장 나쁜 카드 불만 문장", () => {
     const s = play(toDesign(), ...parts([1, 1, 1, 1, 1]), { type: 'runTest' }, { type: 'revise', reason: 'seoyun' },
       { type: 'setPart', slotId: 'color', partId: 'desk-color-3' });
     const r = reduce(s, { type: 'runTest' });
     expect(r.effects!.map((e) => e.e)).toContain('cosmetic_only');
     expect(r.state.rounds[1].satisfied).toBe(r.state.rounds[0].satisfied);
-    expect(r.state.rounds[1].lines.seoyun).toBe(COSMETIC_LINE);
+    expect(r.state.rounds[1].lines.seoyun).toBe('색은 예쁜데 책상 밑에 휠체어가 아직 안 들어가요.');
   });
-  it('✗ 부품 지목 줄은 COSMETIC_LINE 으로 덮지 않음, Round.worse 에 저장 (형태 → 일체형)', () => {
+  it('✗ 부품 지목 줄은 M2 줄로 덮지 않음, Round.worse 에 저장 (형태 → 일체형)', () => {
     const s = play(toDesign(), ...parts([1, 1, 1, 1, 1]), { type: 'runTest' }, { type: 'revise', reason: 'seoyun' },
       { type: 'setPart', slotId: 'form', partId: 'desk-form-4' });
     const r = reduce(s, { type: 'runTest' });
@@ -182,8 +182,37 @@ describe('M2 신호 — 색·형태만 바꾸고 satisfied 변동 0', () => {
     const round = r.state.rounds[1];
     expect(round.worse).toEqual({ seoyun: 'desk-form-4' });
     expect(round.lines.seoyun).toBe(WORSE_LINE.replace('{part}', '책상+의자 일체형'));
-    expect(round.lines.jian).toBe(COSMETIC_LINE);
+    expect(round.lines.jian).toBe(COSMETIC_PREFIX + CARDS.find((c) => c.id === 'C09')!.reactions.unhappy);
     expect(r.state.rounds[0].worse).toEqual({});
+  });
+  it('전 제품·전 부품 조합 × 색·형태만 바꾼 수정: 비만족 NPC 줄 = M2 줄(✗ 는 지목 줄 유지), 60자 이하', () => {
+    const base = toDesign();
+    let seen = 0;
+    for (const product of ['desk', 'locker', 'door'] as const) {
+      const opts = SLOTS.map((sl) => PRODUCTS[product].parts[sl].map((p) => p.id));
+      const combos: PartId[][] = [[]];
+      for (const o of opts) combos.splice(0, combos.length, ...combos.flatMap((c) => o.map((id) => [...c, id])));
+      for (const c of combos) {
+        const slots = Object.fromEntries(SLOTS.map((sl, i) => [sl, c[i]])) as Round['slots'];
+        const r1 = reduce({ ...base, product, draft: { slots, links: {} } }, { type: 'runTest' }).state;
+        for (const sl of ['form', 'color'] as const) for (const id of opts[SLOTS.indexOf(sl)]) {
+          if (id === slots[sl]) continue;
+          const r = reduce({ ...r1, stage: 'revise', draft: { ...r1.draft, slots: { ...slots, [sl]: id } } }, { type: 'runTest' });
+          if (!r.effects!.some((e) => e.e === 'cosmetic_only')) continue;
+          const round = r.state.rounds[1];
+          const fx = react(product, round.slots);
+          for (const [n, k] of Object.entries(round.reactions) as [NpcId, string][]) {
+            const line = round.lines[n]!;
+            expect(line.length).toBeLessThanOrEqual(60);
+            if (k === 'happy') continue;
+            seen++;
+            if (round.worse[n]) expect(line).toBe(fx[n]!.line);
+            else expect(line).toBe(COSMETIC_PREFIX + CARDS.find((x) => x.id === fx[n]!.card)!.reactions.unhappy);
+          }
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(1000);
   });
   it('기능 슬롯을 바꾸면 cosmetic_only 아님', () => {
     const s = play(toDesign(), ...parts([1, 1, 1, 1, 1]), { type: 'runTest' }, { type: 'revise', reason: 'hajun' },

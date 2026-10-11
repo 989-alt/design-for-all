@@ -25,8 +25,7 @@ export function verdict(s: GameState): Verdict {
   const S2 = !!last && SLOTS.filter((sl) => linkOk(partOf(last.slots[sl]), last.links[sl])).length >= 4;
   const S3 = s.rounds.length >= 2 && s.rounds.slice(1).every((r) => !!r.reason);
   const first = (id: string) => s.tags.find((t) => t.caseId === id)?.tried[0];
-  // 저상 버스 사례 — content 에 버스 식별자가 없어 제목으로 찾는다
-  const bus = CASES.find((c) => c.title.includes('버스'));
+  const bus = CASES.find((c) => c.bus);
   const S4 = CASES.filter((c) => first(c.id) === c.main).length >= 5 && !!bus && first(bus.id) === bus.main;
   // 요소 이름은 UI 가 element id 로 붙인다 — 문장 텍스트가 아니라 id 로 판정
   const S5 = s.reflect.good.length >= 1 && s.reflect.fix.length >= 1

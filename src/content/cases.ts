@@ -27,7 +27,7 @@ export const CASES: CaseCard[] = [
     back: '흔한 의자 모양에 알록달록 무늬를 입혔어요. 보는 즐거움, 아름다움에 힘을 줬어요.',
   },
   {
-    id: 'case-07', title: '계단을 없앤 낮은 버스', main: 'access', sub: ['function'], assetId: 'case-07',
+    id: 'case-07', title: '계단을 없앤 낮은 버스', main: 'access', sub: ['function'], assetId: 'case-07', bus: true,
     back: '바닥을 낮추고 계단을 없앴어요. 휠체어를 탄 사람도 무릎 아픈 어르신도 모두 편해요.',
   },
 ];

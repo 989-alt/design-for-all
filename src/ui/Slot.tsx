@@ -1,6 +1,6 @@
 import { CARDS } from '../content/cards';
 import { NPCS } from '../content/npcs';
-import { PRODUCTS } from '../content/products';
+import { MATERIAL_NOTE, PRODUCTS } from '../content/products';
 import type { Part, PartId, SlotId } from '../content/types';
 import { partOf } from '../engine/judge';
 import { useGame } from './store';
@@ -63,6 +63,8 @@ export function Slot({ slot, now, onOpen, onPick, onLink }: {
           </button>
         )}
       </span>
+      {/* 오개념 M5: 재활용만 환경이 아니다 */}
+      {now && slot === 'material' && <p class="sm mnote"><img class="icon" src="./assets/kit/icon-eco.png" width={24} height={24} alt="" /> {MATERIAL_NOTE}</p>}
     </div>
   );
 }

@@ -13,6 +13,8 @@ async function toDesign(page: Page, productId: ProductId = 'desk') {
     await act(page, { type: 'talk', npcId });
     await act(page, { type: 'takeCard', cardId });
   }
+  // 고른 제품 카드가 없으면 pick 을 못 지나간다(판정 D1) — 서윤의 그 제품 카드 1장
+  if (productId !== 'desk') await act(page, { type: 'takeCard', cardId: productId === 'door' ? 'C03' : 'C02' });
   await act(page, { type: 'nextStage' });
   await act(page, { type: 'pickProduct', productId });
   await act(page, { type: 'nextStage' });
@@ -211,6 +213,40 @@ test('2회 수정 뒤: 수정 버튼 없이 돌아보기만', async ({ page }) =
   await expect(page.getByRole('button', { name: '수정하러 가기' })).toHaveCount(0);
   await enter(page, page.getByRole('button', { name: '돌아보기' }));
   expect(await stage(page)).toBe('reflect');
+});
+
+test('라운드 2: 처음 → 지금, 색만 바꾸면 아름다움 이전→지금·누구나 편리 그대로, S1 뒤 돌아보기 coral', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await toDesign(page);
+  for (const s of ['form', 'funcA', 'funcB', 'material', 'color'] as const) await act(page, { type: 'setPart', slotId: s, partId: `desk-${s}-1` });
+  expect(await act(page, { type: 'runTest' })).toBeNull();
+  const dlg = page.getByRole('dialog');
+  const closeAll = async () => { while (await dlg.count()) await dlg.getByRole('button').press('Enter'); };
+  await closeAll();
+  await expect(page.locator('.test-num .since')).toHaveCount(0); // 1차엔 없음
+  const r1 = (await getState(page)).rounds[0];
+  // 색만 → M2: 줄인 움직임이면 바로 보인다
+  expect(await act(page, { type: 'revise', reason: 'seoyun' })).toBeNull();
+  await act(page, { type: 'setPart', slotId: 'color', partId: 'desk-color-3' });
+  expect(await act(page, { type: 'runTest' })).toBeNull();
+  await closeAll();
+  const since = page.locator('.test-num .since');
+  await expect(since).toContainText(`처음 ${r1.satisfied} → 지금 ${r1.satisfied}`);
+  await expect(since).toContainText(/아름다움 \d+ → \d+/);
+  await expect(since).toContainText('누구나 편리 그대로');
+  await expect(since.locator('img')).toHaveCount(3);
+  await expect(page.locator('.test-main p')).toContainText('색은 예쁜데 ');
+  // S1 못 채움: 돌아보기는 보조(paper), 수정이 주(coral)
+  await expect(page.getByRole('button', { name: '돌아보기' })).toHaveClass(/paper/);
+  await expect(page.getByRole('button', { name: '수정하러 가기' })).toHaveClass(/coral/);
+  // 기능을 바꿔 전원 만족(S1) → 아름다움 줄 없음, 돌아보기가 coral
+  expect(await act(page, { type: 'revise', reason: 'seoyun' })).toBeNull();
+  for (const [slotId, n] of [['form', 2], ['funcA', 3], ['funcB', 3], ['material', 3], ['color', 2]] as const) await act(page, { type: 'setPart', slotId, partId: `desk-${slotId}-${n}` });
+  expect(await act(page, { type: 'runTest' })).toBeNull();
+  await closeAll();
+  await expect(since).toContainText(`처음 ${r1.satisfied} → 지금 6`);
+  await expect(since).not.toContainText('아름다움');
+  await expect(page.getByRole('button', { name: '돌아보기' })).toHaveClass(/coral/);
 });
 
 test('줄인 움직임: 반응이 한 번에 전부 / 기본: 차례로', async ({ page }) => {

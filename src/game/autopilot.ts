@@ -100,9 +100,9 @@ export const badPolicy: Policy = (s) => {
     }
     case 'pick': {
       if (s.product) return { type: 'nextStage' };
-      // 모은 카드가 가장 적은 제품
+      // 모은 카드가 가장 적은 제품(0장 제품은 다음으로 못 가니 1장 이상 중에서 — 판정 D1)
       const n = (p: ProductId) => CARDS.filter((c) => c.product === p && s.collected.includes(c.id)).length;
-      const productId = (['desk', 'locker', 'door'] as const).reduce((a, b) => (n(b) < n(a) ? b : a));
+      const productId = (['desk', 'locker', 'door'] as const).filter((p) => n(p) > 0).reduce((a, b) => (n(b) < n(a) ? b : a));
       return { type: 'pickProduct', productId };
     }
     case 'research': {

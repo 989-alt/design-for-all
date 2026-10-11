@@ -162,18 +162,24 @@ test('본 흐름: 연타·사례 오답 재시도·교실 수집·제품·조사
   expect((await getState(page)).stage).toBe('design');
 });
 
-test('제품 카드 0장: 경고하되 진행 허용', async ({ page }) => {
+test('제품 카드 0장(사물함): 다음 막힘·안내, 다른 제품을 고르면 진행 (판정 D1)', async ({ page }) => {
   await open(page);
   await tagAllCases(page);
   await act(page, { type: 'nextStage' });
-  for (const [npcId, cards] of [['dohyun', ['C04', 'C05']], ['hajun', ['C06', 'C08']], ['jian', ['C09']]] as const) {
+  for (const [npcId, cards] of [['dohyun', ['C04']], ['hajun', ['C06', 'C07']], ['jian', ['C09']]] as const) {
     await act(page, { type: 'talk', npcId });
     for (const cardId of cards) await act(page, { type: 'takeCard', cardId });
   }
   await act(page, { type: 'nextStage' });
   await expect(page.locator('.picks')).toBeVisible();
-  await page.getByRole('radio', { name: /교실 문/ }).click();
-  await expect(page.locator('.warn')).toHaveText('모은 불편 카드 중에 교실 문 카드가 없어요');
+  await page.getByRole('radio', { name: /사물함/ }).click();
+  await expect(page.locator('.warn')).toHaveText('모은 불편 카드 중에 사물함 카드가 없어요');
+  await expect(next(page)).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('.next-bar .msg')).toHaveText('고른 제품의 불편 카드가 있어야 해요');
+  await next(page).click({ force: true });
+  expect((await getState(page)).stage).toBe('pick');
+  await page.getByRole('radio', { name: /책상/ }).click();
+  await expect(next(page)).not.toHaveAttribute('aria-disabled', 'true');
   await next(page).click();
   expect((await getState(page)).stage).toBe('research');
 });

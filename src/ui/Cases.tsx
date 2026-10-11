@@ -41,6 +41,11 @@ export function Cases() {
             <div class="k-card thin back" aria-live="polite">
               <b class="jua">{tag.correct ? '맞았어요' : '다시 골라 봐요'}</b>
               <p>{c.back}</p>
+              {/* 판정 D2: 맞힌 뒤 그 요소의 뜻 한 줄 */}
+              {tag.correct && (() => {
+                const e = ELEMENTS.find((x) => x.id === c.main)!;
+                return <p class="def"><img class="icon" src={`./assets/kit/${e.icon}.png`} width={24} height={24} alt="" /> <b>{e.name}</b> — {e.desc}</p>;
+              })()}
             </div>
           )}
         </div>

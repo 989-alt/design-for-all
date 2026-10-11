@@ -10,9 +10,10 @@ if (!file || flag !== '--expect' || !['master', 'care', 'apprentice'].includes(e
   process.exit(2);
 }
 
-let verdict;
+let verdict, react;
 try {
   ({ verdict } = await import('../src/engine/verdict.ts'));
+  ({ react } = await import('../src/engine/judge.ts'));
 } catch (e) {
   if (process.env.DFA_VITE_NODE) throw e;
   const bin = fileURLToPath(new URL('../node_modules/.bin/vite-node', import.meta.url));
@@ -21,7 +22,14 @@ try {
   process.exit(r.status ?? 1);
 }
 
-const v = verdict(JSON.parse(readFileSync(file, 'utf8')));
+const state = JSON.parse(readFileSync(file, 'utf8'));
+// JSON 에 적힌 만족 수를 믿지 않고 부품으로 다시 판정한다
+for (const [i, r] of state.rounds.entries()) {
+  const satisfied = Object.values(react(state.product, r.slots)).filter((x) => x.kind === 'happy').length;
+  if (satisfied !== r.satisfied) console.log(`round ${i + 1} satisfied ${r.satisfied} → ${satisfied} (부품으로 재계산)`);
+  r.satisfied = satisfied;
+}
+const v = verdict(state);
 for (const k of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S8']) console.log(`${k} ${v[k]}`);
 console.log(`passed ${v.passed}/6 grade ${v.grade} (expect ${expect})`);
 if (v.grade !== expect) process.exit(1);

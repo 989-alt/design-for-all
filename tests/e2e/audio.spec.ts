@@ -90,3 +90,27 @@ test('효과음 매핑·BGM 교체·소리 토글', async ({ page }) => {
   await has(page, 'sfx/sfx-grade.mp3');
   await has(page, 'bgm/bgm-result.mp3');
 });
+
+test('줄인 움직임: 반응 효과음은 한 번만', async ({ page }) => {
+  await spy(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await tagAllCases(page);
+  await page.mouse.click(5, 5); // 첫 입력
+  await act(page, { type: 'nextStage' });
+  for (const [npcId, cardId] of [['seoyun', 'C01'], ['dohyun', 'C04'], ['hajun', 'C06'], ['jian', 'C09']] as const) {
+    await act(page, { type: 'talk', npcId });
+    await act(page, { type: 'takeCard', cardId });
+  }
+  for (const a of [
+    { type: 'nextStage' }, { type: 'pickProduct', productId: 'desk' }, { type: 'nextStage' },
+    { type: 'pickRef', refId: 'ref-07' }, { type: 'linkRef', refId: 'ref-07', cardId: 'C06' },
+    { type: 'pickRef', refId: 'ref-02' }, { type: 'linkRef', refId: 'ref-02', cardId: 'C04' }, { type: 'nextStage' },
+  ] as const) await act(page, a);
+  for (const s of ['form', 'funcA', 'funcB', 'material', 'color'] as const) await act(page, { type: 'setPart', slotId: s, partId: `desk-${s}-1` });
+  await act(page, { type: 'runTest' });
+  const reacts = async () => (await plays(page)).filter((s) => /sfx-(happy|partial|unhappy)/.test(s));
+  await expect.poll(async () => (await reacts()).length).toBe(1);
+  await page.waitForTimeout(1500); // 차례 연출(0.5초 간격)이 있었다면 더 울렸을 시간
+  expect(await reacts()).toHaveLength(1);
+});

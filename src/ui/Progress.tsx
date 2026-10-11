@@ -14,6 +14,7 @@ const MSG: Partial<Record<Reject, string>> = {
   cases_incomplete: '사례 카드 7장을 모두 골라야 해요',
   need_more_cards: '3명에게 4장을 받아야 해요',
   no_product: '고칠 제품을 하나 골라야 해요',
+  no_product_cards: '고른 제품의 불편 카드가 있어야 해요',
   need_two_refs: '참고 카드 2장을 불편 카드에 이어야 해요',
   two_refs_max: '참고 카드는 2장까지 골라요',
 };

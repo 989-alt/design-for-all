@@ -2,13 +2,15 @@
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 
 rmSync('public/assets', { recursive: true, force: true });
-cpSync('assets/img/kit', 'public/assets/kit', { recursive: true });
-// _lyria 는 원본 보관용이라 배포본에 넣지 않는다
-cpSync('assets/bgm', 'public/assets/bgm', { recursive: true, filter: (src) => !src.includes('_lyria') });
+// 화면이 쓰지 않는 kit 그림은 배포본에서 뺀다. 빠뜨린 게 있으면 check-assets 가 잡는다
+const UNUSED_KIT = ['btn-coral-pressed', 'door-label-1', 'face-big-happy', 'face-big-partial', 'face-big-unhappy', 'icon-badge', 'step-check', 'step-done'];
+cpSync('assets/img/kit', 'public/assets/kit', { recursive: true, filter: (src) => !UNUSED_KIT.some((n) => src.endsWith(`/${n}.png`)) });
+// _lyria(원본 보관)·-b(대안 곡)는 배포본에 넣지 않는다
+cpSync('assets/bgm', 'public/assets/bgm', { recursive: true, filter: (src) => !src.includes('_lyria') && !src.endsWith('-b.mp3') });
 // 효과음은 생성 중일 수 있다 — 폴더가 없으면 건너뛴다(소리 모듈이 no-op)
 if (existsSync('assets/sfx')) cpSync('assets/sfx', 'public/assets/sfx', { recursive: true });
 cpSync('assets/img/bg-classroom.png', 'public/assets/bg-classroom.png');
 cpSync('assets/img/keyart-title.png', 'public/assets/keyart-title.png');
-// 교실 장면: 저장소 루트의 시안 그림(npcHitAreas.ts 의 CLASSROOM_ART_SRC). 없으면 cpSync 가 던져 빌드가 멈춘다
+// 교실 장면: 저장소 루트의 시안 그림 → npcHitAreas.ts 의 CLASSROOM_ART. 없으면 cpSync 가 던져 빌드가 멈춘다
 mkdirSync('public/assets/scene', { recursive: true });
 cpSync('../시안/design-for-all/1-플랫-교실.png', 'public/assets/scene/classroom-npcs.png');
